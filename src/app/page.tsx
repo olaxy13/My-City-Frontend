@@ -171,7 +171,7 @@ export default function HomePage() {
 
       {/* 5. Submitter Banner Callout */}
       <div
-        className="glass-card"
+        className="glass-card callout-banner"
         style={{
           marginTop: '60px',
           padding: '40px',
@@ -189,7 +189,7 @@ export default function HomePage() {
           <span className="badge badge-featured" style={{ marginBottom: '12px' }}>
             ⚡ FREE COMMUNITY DIRECTORY
           </span>
-          <h2 style={{ fontSize: '2rem', marginBottom: '10px' }}>
+          <h2 style={{ fontSize: 'clamp(1.35rem, 4vw, 2rem)', marginBottom: '10px' }}>
             Are you hosting an event or running a business in {currentCity}?
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
@@ -200,13 +200,27 @@ export default function HomePage() {
         <Link
           href="/submit"
           className="btn btn-primary"
-          style={{ padding: '14px 28px', fontSize: '1.05rem' }}
+          style={{ padding: '14px 28px', fontSize: '1.05rem', width: '100%', maxWidth: '360px', justifyContent: 'center' }}
         >
           <PlusCircle size={20} />
           <span>Submit Your Listing For Free</span>
           <ArrowRight size={18} />
         </Link>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .callout-banner {
+            padding: 24px 20px !important;
+            margin-top: 40px !important;
+            border-radius: 18px !important;
+          }
+          .callout-banner .btn {
+            max-width: 100% !important;
+            font-size: 0.95rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

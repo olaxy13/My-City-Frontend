@@ -40,61 +40,64 @@ export default function Navbar() {
 
   return (
     <header className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
+      <div className="container nav-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
         {/* Brand & City Switcher Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
                 background: 'linear-gradient(135deg, #FF5A36, #FF833E)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#fff',
+                flexShrink: 0,
                 boxShadow: '0 4px 15px rgba(255, 90, 54, 0.4)',
               }}
             >
-              <Compass size={22} />
+              <Compass size={20} />
             </div>
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>
+            <div className="brand-text">
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>
                 City<span style={{ color: 'var(--primary)' }}>Discovery</span>
               </div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 Abeokuta Edition
               </div>
             </div>
           </Link>
 
           {/* City Selector Pill */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} className="city-pill-wrap">
             <button
               onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
               className="glass-pill"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '5px',
                 background: 'var(--bg-card)',
                 color: 'var(--text-primary)',
+                padding: '6px 10px',
               }}
               title="Change active city"
             >
               <span
                 style={{
-                  width: '8px',
-                  height: '8px',
+                  width: '7px',
+                  height: '7px',
                   borderRadius: '50%',
                   background: '#10B981',
-                  boxShadow: '0 0 8px #10B981',
+                  boxShadow: '0 0 6px #10B981',
+                  flexShrink: 0,
                 }}
               />
-              <MapPin size={14} color="var(--primary)" />
-              <span style={{ fontWeight: 700 }}>{currentCity}</span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>▼</span>
+              <MapPin size={13} color="var(--primary)" />
+              <span className="city-label" style={{ fontWeight: 700, fontSize: '0.85rem' }}>{currentCity}</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▼</span>
             </button>
 
             {isCityDropdownOpen && (
@@ -271,11 +274,11 @@ export default function Navbar() {
           {/* Primary CTA: Submit Listing */}
           <Link
             href="/submit"
-            className="btn btn-primary"
-            style={{ padding: '9px 18px', fontSize: '0.9rem' }}
+            className="btn btn-primary submit-btn"
+            style={{ padding: '9px 16px', fontSize: '0.9rem' }}
           >
             <PlusCircle size={17} />
-            <span>Submit Listing</span>
+            <span className="submit-btn-text">Submit Listing</span>
           </Link>
 
           {/* Mobile Menu Toggle */}
@@ -309,17 +312,51 @@ export default function Navbar() {
             display: none !important;
           }
         }
+
+        /* Tablet: hide brand subtitle */
+        @media (max-width: 680px) {
+          .brand-text div:last-child {
+            display: none;
+          }
+          .nav-inner {
+            height: 64px !important;
+          }
+        }
+
+        /* Mobile: compact everything */
+        @media (max-width: 480px) {
+          .brand-text {
+            display: none;
+          }
+          .city-label {
+            display: none;
+          }
+          .city-pill-wrap .glass-pill {
+            padding: 6px 8px !important;
+          }
+          .submit-btn-text {
+            display: none;
+          }
+          .submit-btn {
+            padding: 8px 10px !important;
+          }
+          .nav-inner {
+            height: 58px !important;
+            gap: 8px;
+          }
+        }
       `}</style>
 
       {isMobileMenuOpen && (
         <div
           className="glass-card"
           style={{
-            padding: '20px',
-            margin: '0 16px 16px 16px',
+            padding: '16px',
+            margin: '0 12px 12px 12px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
+            gap: '14px',
+            borderRadius: '16px',
           }}
         >
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
@@ -327,29 +364,41 @@ export default function Navbar() {
               type="text"
               placeholder="Search Abeokuta..."
               className="form-input"
+              style={{ fontSize: '0.95rem' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button type="submit" className="btn btn-primary" style={{ padding: '0 16px' }}>
+            <button type="submit" className="btn btn-primary" style={{ padding: '0 14px', flexShrink: 0 }}>
               <Search size={18} />
             </button>
           </form>
 
           <Link
+            href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)' }}
+          >
+            <Home size={18} />
+            Home
+          </Link>
+
+          <Link
             href="/explore"
             onClick={() => setIsMobileMenuOpen(false)}
-            style={{ padding: '8px 0', fontSize: '1rem', fontWeight: 600 }}
+            style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            ✨ Explore All Categories & Places
+            <Sparkles size={18} color="var(--primary)" />
+            Explore All Categories
           </Link>
 
           <Link
             href="/submit"
             onClick={() => setIsMobileMenuOpen(false)}
             className="btn btn-primary"
-            style={{ width: '100%' }}
+            style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
           >
-            + Submit New Listing
+            <PlusCircle size={18} />
+            Submit New Listing
           </Link>
         </div>
       )}
