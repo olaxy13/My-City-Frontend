@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     'Discover Abeokuta',
     'Nigerian city guide',
   ],
+  icons: {
+    icon: '/favicon.webp',
+    apple: '/favicon.webp',
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Explicit favicon link — .webp is not auto-handled by Next.js file conventions */}
+        <link rel="icon" href="/favicon.webp" type="image/webp" />
+        <link rel="apple-touch-icon" href="/favicon.webp" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

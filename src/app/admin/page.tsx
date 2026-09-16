@@ -180,9 +180,16 @@ export default function AdminLoginPage() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '24px' }}>
-          <Link href="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          <a
+            href={
+              typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
+                ? `${window.location.protocol}//${window.location.hostname.replace(/^admin\./, 'www.')}${window.location.port ? `:${window.location.port}` : ''}/`
+                : '/'
+            }
+            style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}
+          >
             ← Back to City Discovery
-          </Link>
+          </a>
         </div>
       </div>
     </div>

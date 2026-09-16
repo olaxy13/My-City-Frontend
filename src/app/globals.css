@@ -545,3 +545,39 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   }
 }
 
+/* Submit Form Responsive Grid */
+.submit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .submit-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tighter card padding on mobile */
+  .submit-wizard-card {
+    padding: 24px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Step indicator labels: hide on very small screens */
+  .step-indicator-label {
+    display: none;
+  }
+
+  /* Listing type selector: single column on mobile */
+  .listing-type-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Prevent datetime-local from overflowing */
+  input[type="datetime-local"] {
+    min-width: 0;
+    width: 100%;
+    font-size: 0.85rem;
+  }
+}
+

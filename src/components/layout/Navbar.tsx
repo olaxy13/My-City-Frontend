@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
 import { useCity } from '@/context/CityContext';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +22,12 @@ import {
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const { theme, toggleTheme } = useTheme();
   const { currentCity, setCurrentCity, cities } = useCity();
   const { isAuthenticated, admin, logout } = useAuth();

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
@@ -42,6 +42,8 @@ export default function SubmitListingPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successResult, setSuccessResult] = useState<{ id: string; editToken: string } | null>(null);
+  const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false);
+  const isRestoringDraft = useRef(false);
 
   // Form State
   const [formData, setFormData] = useState<CreateSubmissionInput>({
@@ -84,9 +86,59 @@ export default function SubmitListingPage() {
   const [isUploadingGallery, setIsUploadingGallery] = useState<boolean>(false);
   const [isUploadingLegal, setIsUploadingLegal] = useState<boolean>(false);
 
+  const DRAFT_KEY = 'citybuzz-listing-draft';
+  const DRAFT_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const age = Date.now() - (parsed.__savedAt || 0);
+        if (age < DRAFT_TTL_MS && parsed.formData) {
+          isRestoringDraft.current = true;
+          setFormData(parsed.formData);
+          if (parsed.step && parsed.step > 1) {
+            setStep(parsed.step);
+          }
+          setShowResumeBanner(true);
+        } else {
+          // Stale draft — clear it
+          localStorage.removeItem(DRAFT_KEY);
+        }
+      }
+    } catch {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch categories
   useEffect(() => {
     api.getCategories().then(setCategories).catch(console.error);
   }, []);
+
+  // Persist draft on every change (skip first restore tick)
+  useEffect(() => {
+    if (isRestoringDraft.current) {
+      isRestoringDraft.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ formData, step, __savedAt: Date.now() })
+      );
+    } catch {
+      // localStorage full or unavailable — ignore
+    }
+  }, [formData, step]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
+  };
+
 
   const updateField = (field: keyof CreateSubmissionInput, val: any) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
@@ -334,6 +386,7 @@ export default function SubmitListingPage() {
       };
 
       const res = await api.createSubmission(payload);
+      clearDraft();
       setSuccessResult({ id: res.id, editToken: res.editToken });
       confetti({
         particleCount: 100,
@@ -362,6 +415,83 @@ export default function SubmitListingPage() {
           Reach thousands of people looking for events, dining, and places in Abeokuta.
         </p>
       </div>
+
+      {/* Resume Draft Banner */}
+      {showResumeBanner && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '14px 18px',
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.12), rgba(245, 158, 11, 0.1))',
+            border: '1px solid rgba(255, 90, 54, 0.35)',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.2rem' }}>📋</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                Resume your draft submission?
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                We found a saved draft from your last session — your progress has been restored.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft();
+                setFormData({
+                  listingType: 'event', title: '', description: '', category: 'music',
+                  city: 'Abeokuta', neighborhood: 'Ibara', address: '', latitude: undefined,
+                  longitude: undefined, thumbnailUrl: '', galleryImageUrls: [], legalDocumentUrls: [],
+                  contactPhone: '', contactEmail: '', externalLink: '', submitterName: '',
+                  submitterEmail: '', submitterPhone: '', startDateTime: '', endDateTime: '',
+                  isRecurring: false, cuisineType: '', priceRange: '$$', operatingHours: '',
+                  menuLink: '', cacNumber: '', licenseNumber: '', facilityCategory: '', emergencyContact: '',
+                });
+                setStep(1);
+                setShowResumeBanner(false);
+              }}
+              style={{
+                fontSize: '0.8rem',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              Start fresh
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowResumeBanner(false)}
+              style={{
+                fontSize: '0.8rem',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: 'rgba(255, 90, 54, 0.18)',
+                border: '1px solid rgba(255, 90, 54, 0.4)',
+                color: 'var(--primary)',
+                cursor: 'pointer',
+                fontWeight: 700,
+              }}
+            >
+              Continue draft ✓
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Success View */}
       {successResult ? (
@@ -447,7 +577,7 @@ export default function SubmitListingPage() {
         </div>
       ) : (
         /* Multi-Step Wizard Form */
-        <div className="glass-card-static" style={{ padding: '36px 30px', borderRadius: '24px' }}>
+        <div className="glass-card-static submit-wizard-card" style={{ padding: '36px 30px', borderRadius: '24px' }}>
           {/* Step Indicator */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', position: 'relative' }}>
             {[
@@ -482,6 +612,7 @@ export default function SubmitListingPage() {
                   {step > s.num ? '✓' : s.num}
                 </div>
                 <span
+                  className="step-indicator-label"
                   style={{
                     fontSize: '0.72rem',
                     fontWeight: 700,
@@ -570,7 +701,7 @@ export default function SubmitListingPage() {
               </div>
 
               {/* Category & Neighborhood */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+              <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                 <div>
                   <label className="form-label">
                     Category <span className="req">*</span>
@@ -619,7 +750,7 @@ export default function SubmitListingPage() {
               </div>
 
               {/* Optional Coordinates */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+              <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                 <div>
                   <label className="form-label">Latitude (Optional)</label>
                   <input
@@ -821,7 +952,7 @@ export default function SubmitListingPage() {
               {/* Event Specific */}
               {formData.listingType === 'event' && (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                     <div>
                       <label className="form-label">
                         Start Date & Time <span className="req">*</span>
@@ -922,7 +1053,7 @@ export default function SubmitListingPage() {
               {/* Restaurant Specific */}
               {formData.listingType === 'restaurant' && (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                     <div>
                       <label className="form-label">
                         Cuisine Type <span className="req">*</span>
@@ -950,7 +1081,7 @@ export default function SubmitListingPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                     <div>
                       <label className="form-label">Operating Hours</label>
                       <input
@@ -978,7 +1109,7 @@ export default function SubmitListingPage() {
               {/* Facility Specific */}
               {formData.listingType === 'facility' && (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                     <div>
                       <label className="form-label">
                         Facility Category <span className="req">*</span>
@@ -1006,7 +1137,7 @@ export default function SubmitListingPage() {
               )}
 
               {/* Universal Links & Contact */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+              <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                 <div>
                   <label className="form-label">WhatsApp / Public Contact Phone</label>
                   <input
@@ -1119,7 +1250,7 @@ export default function SubmitListingPage() {
               </div>
 
               {/* Optional Registration Numbers */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="submit-form-grid">
                 <div>
                   <label className="form-label">CAC Number (Optional)</label>
                   <input
@@ -1165,7 +1296,7 @@ export default function SubmitListingPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div className="submit-form-grid" style={{ marginBottom: '24px' }}>
                 <div>
                   <label className="form-label">
                     Your Email Address <span className="req">*</span>
