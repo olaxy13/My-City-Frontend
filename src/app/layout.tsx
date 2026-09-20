@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { CityProvider } from '@/context/CityContext';
