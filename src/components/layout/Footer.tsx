@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, Heart, ShieldCheck, Sparkles, MapPin } from 'lucide-react';
+import { Compass, Heart, ShieldCheck, Sparkles, MapPin, Mail } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -86,6 +86,11 @@ export default function Footer() {
                   🍸 Lounges & Nightlife
                 </Link>
               </li>
+              <li>
+                <a href="mailto:hello@citybuzz.live" style={{ color: 'var(--text-secondary)' }}>
+                  ✉️ Contact Us
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -121,6 +126,37 @@ export default function Footer() {
               <Sparkles size={16} />
               Submit Your Place/Event
             </Link>
+
+            <div
+              style={{
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1px dashed var(--border-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Contact & Support
+              </span>
+              <a
+                href="mailto:hello@citybuzz.live"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'var(--primary)',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  transition: 'opacity 0.2s ease',
+                }}
+              >
+                <Mail size={16} />
+                hello@citybuzz.live
+              </a>
+            </div>
           </div>
         </div>
 

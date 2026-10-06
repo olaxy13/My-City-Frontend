@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
@@ -12,7 +13,6 @@ import {
   Category,
 } from '@/types/api';
 import {
-  ABEKOULA_NEIGHBORHOODS,
   CATEGORY_CONFIG,
   readAndCompressImage,
 } from '@/lib/utils';
@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 
 export default function SubmitListingPage() {
+  const { currentCity, cities, getNeighborhoodsForCity } = useCity();
   const [step, setStep] = useState<number>(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -51,8 +52,8 @@ export default function SubmitListingPage() {
     title: '',
     description: '',
     category: 'music',
-    city: 'Abeokuta',
-    neighborhood: 'Ibara',
+    city: currentCity || 'Abeokuta',
+    neighborhood: '',
     address: '',
     latitude: undefined,
     longitude: undefined,
@@ -80,6 +81,23 @@ export default function SubmitListingPage() {
     facilityCategory: '',
     emergencyContact: '',
   });
+
+  const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([]);
+
+  // Automatically update neighborhoods whenever selected city changes
+  useEffect(() => {
+    const targetCity = formData.city || currentCity || 'Abeokuta';
+    const neighborhoods = getNeighborhoodsForCity(targetCity);
+    setAvailableNeighborhoods(neighborhoods);
+    // Auto-select the first neighborhood if current selection isn't in the list
+    if (!formData.neighborhood || !neighborhoods.includes(formData.neighborhood)) {
+      setFormData((prev) => ({
+        ...prev,
+        city: targetCity,
+        neighborhood: neighborhoods[0] || '',
+      }));
+    }
+  }, [formData.city, currentCity, cities]);
 
   // Media Upload State
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState<boolean>(false);
@@ -111,7 +129,7 @@ export default function SubmitListingPage() {
     } catch {
       localStorage.removeItem(DRAFT_KEY);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch categories
@@ -412,7 +430,7 @@ export default function SubmitListingPage() {
           Submit a Listing to City Discovery
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-          Reach thousands of people looking for events, dining, and places in Abeokuta.
+          Reach thousands of people looking for events, dining, and places in {formData.city || currentCity}.
         </p>
       </div>
 
@@ -597,8 +615,8 @@ export default function SubmitListingPage() {
                       step === s.num
                         ? 'var(--primary)'
                         : step > s.num
-                        ? 'var(--accent-emerald)'
-                        : 'var(--bg-input)',
+                          ? 'var(--accent-emerald)'
+                          : 'var(--bg-input)',
                     color: '#fff',
                     display: 'flex',
                     alignItems: 'center',
@@ -700,7 +718,7 @@ export default function SubmitListingPage() {
                 />
               </div>
 
-              {/* Category & Neighborhood */}
+              {/* Category & City */}
               <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
                 <div>
                   <label className="form-label">
@@ -719,22 +737,41 @@ export default function SubmitListingPage() {
                   </select>
                 </div>
 
+                {/* City Selector */}
                 <div>
                   <label className="form-label">
-                    Neighborhood <span className="req">*</span>
+                    City / State <span className="req">*</span>
                   </label>
                   <select
                     className="form-select"
-                    value={formData.neighborhood}
-                    onChange={(e) => updateField('neighborhood', e.target.value)}
+                    value={formData.city}
+                    onChange={(e) => updateField('city', e.target.value)}
                   >
-                    {ABEKOULA_NEIGHBORHOODS.map((n) => (
-                      <option key={n} value={n}>
-                        {n}
+                    {cities.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.state})
                       </option>
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Dynamic Neighborhood Selector */}
+              <div style={{ marginBottom: '18px' }}>
+                <label className="form-label">
+                  Neighborhood <span className="req">*</span>
+                </label>
+                <select
+                  className="form-select"
+                  value={formData.neighborhood}
+                  onChange={(e) => updateField('neighborhood', e.target.value)}
+                >
+                  {availableNeighborhoods.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Street Address & City */}
@@ -794,586 +831,586 @@ export default function SubmitListingPage() {
             </div>
           )}
 
-          {/* STEP 2: Media Uploads */}
-          {step === 2 && (
-            <div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step 2: Cover Photo & Photo Gallery</h3>
+                {/* STEP 2: Media Uploads */}
+                {step === 2 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step 2: Cover Photo & Photo Gallery</h3>
 
-              {/* Cover Thumbnail */}
-              <div style={{ marginBottom: '28px' }}>
-                <label className="form-label">
-                  Cover Thumbnail Image <span className="req">*</span>
-                </label>
-                <div
-                  style={{
-                    border: '2px dashed var(--border-color)',
-                    borderRadius: '16px',
-                    padding: '24px',
-                    textAlign: 'center',
-                    background: 'var(--bg-input)',
-                    position: 'relative',
-                  }}
-                >
-                  {formData.thumbnailUrl ? (
-                    <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
-                      <img
-                        src={formData.thumbnailUrl}
-                        alt="Thumbnail preview"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => updateField('thumbnailUrl', '')}
+                    {/* Cover Thumbnail */}
+                    <div style={{ marginBottom: '28px' }}>
+                      <label className="form-label">
+                        Cover Thumbnail Image <span className="req">*</span>
+                      </label>
+                      <div
                         style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          background: 'rgba(0,0,0,0.7)',
-                          color: '#fff',
-                          borderRadius: '50%',
-                          padding: '6px',
+                          border: '2px dashed var(--border-color)',
+                          borderRadius: '16px',
+                          padding: '24px',
+                          textAlign: 'center',
+                          background: 'var(--bg-input)',
+                          position: 'relative',
                         }}
                       >
-                        <X size={16} />
-                      </button>
+                        {formData.thumbnailUrl ? (
+                          <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
+                            <img
+                              src={formData.thumbnailUrl}
+                              alt="Thumbnail preview"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => updateField('thumbnailUrl', '')}
+                              style={{
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                background: 'rgba(0,0,0,0.7)',
+                                color: '#fff',
+                                borderRadius: '50%',
+                                padding: '6px',
+                              }}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            {isUploadingThumbnail ? (
+                              <div style={{ padding: '30px 0' }}>
+                                <Loader2 size={32} color="var(--primary)" className="glow-animation" style={{ margin: '0 auto 10px auto' }} />
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Uploading to Cloudinary...</div>
+                              </div>
+                            ) : (
+                              <label style={{ cursor: 'pointer', display: 'block', padding: '20px 0' }}>
+                                <Upload size={32} color="var(--primary)" style={{ margin: '0 auto 10px auto' }} />
+                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                  Click to upload high-res cover image
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                  PNG, JPG or WEBP (Max 10MB)
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleThumbnailUpload}
+                                  style={{ display: 'none' }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ) : (
+
+                    {/* Gallery Images */}
                     <div>
-                      {isUploadingThumbnail ? (
-                        <div style={{ padding: '30px 0' }}>
-                          <Loader2 size={32} color="var(--primary)" className="glow-animation" style={{ margin: '0 auto 10px auto' }} />
-                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Uploading to Cloudinary...</div>
-                        </div>
-                      ) : (
-                        <label style={{ cursor: 'pointer', display: 'block', padding: '20px 0' }}>
-                          <Upload size={32} color="var(--primary)" style={{ margin: '0 auto 10px auto' }} />
-                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                            Click to upload high-res cover image
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <label className="form-label" style={{ margin: 0 }}>Additional Gallery Photos (Optional)</label>
+                        <span
+                          style={{
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            color: (formData.galleryImageUrls?.length || 0) >= 10 ? 'var(--primary)' : 'var(--text-muted)',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            padding: '2px 10px',
+                            borderRadius: '12px',
+                          }}
+                        >
+                          {formData.galleryImageUrls?.length || 0}/10 max
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+                        {(formData.galleryImageUrls || []).map((url, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              position: 'relative',
+                              width: '90px',
+                              height: '90px',
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <img src={url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateField(
+                                  'galleryImageUrls',
+                                  formData.galleryImageUrls?.filter((_, i) => i !== idx)
+                                )
+                              }
+                              style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                background: 'rgba(0,0,0,0.7)',
+                                color: '#fff',
+                                borderRadius: '50%',
+                                padding: '2px',
+                              }}
+                            >
+                              <X size={12} />
+                            </button>
                           </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            PNG, JPG or WEBP (Max 10MB)
-                          </div>
+                        ))}
+                      </div>
+
+                      {(formData.galleryImageUrls?.length || 0) < 10 ? (
+                        <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+                          {isUploadingGallery ? <Loader2 size={16} className="glow-animation" /> : <ImageIcon size={16} />}
+                          <span>{isUploadingGallery ? 'Uploading Photos...' : '+ Add Gallery Photos'}</span>
                           <input
                             type="file"
+                            multiple
                             accept="image/*"
-                            onChange={handleThumbnailUpload}
+                            onChange={handleGalleryUpload}
                             style={{ display: 'none' }}
+                            disabled={isUploadingGallery}
                           />
                         </label>
+                      ) : (
+                        <div style={{ fontSize: '0.82rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
+                          ✓ Maximum 10 gallery photos reached. Remove one above to upload a different photo.
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
 
-              {/* Gallery Images */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label className="form-label" style={{ margin: 0 }}>Additional Gallery Photos (Optional)</label>
-                  <span
-                    style={{
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      color: (formData.galleryImageUrls?.length || 0) >= 10 ? 'var(--primary)' : 'var(--text-muted)',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      padding: '2px 10px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    {formData.galleryImageUrls?.length || 0}/10 max
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
-                  {(formData.galleryImageUrls || []).map((url, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        position: 'relative',
-                        width: '90px',
-                        height: '90px',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <img src={url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateField(
-                            'galleryImageUrls',
-                            formData.galleryImageUrls?.filter((_, i) => i !== idx)
-                          )
-                        }
+                {/* STEP 3: Type-Specific Details */}
+                {step === 3 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>
+                      Step 3: {formData.listingType === 'event' ? 'Event Schedule' : formData.listingType === 'restaurant' ? 'Dining Details' : 'Facility Info'}
+                    </h3>
+
+                    {/* Event Specific */}
+                    {formData.listingType === 'event' && (
+                      <div>
+                        <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
+                          <div>
+                            <label className="form-label">
+                              Start Date & Time <span className="req">*</span>
+                            </label>
+                            <input
+                              type="datetime-local"
+                              className="form-input"
+                              value={formData.startDateTime || ''}
+                              onChange={(e) => updateField('startDateTime', e.target.value)}
+                            />
+                            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={12} color="var(--primary)" /> Popular hours:
+                              </span>
+                              {[
+                                { time: '09:00', label: '9 AM' },
+                                { time: '12:00', label: '12 PM' },
+                                { time: '16:00', label: '4 PM' },
+                                { time: '18:00', label: '6 PM' },
+                                { time: '20:00', label: '8 PM' },
+                              ].map(({ time, label }) => (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  onClick={() => setQuickTime('startDateTime', time)}
+                                  style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    background: 'rgba(255, 90, 54, 0.12)',
+                                    color: 'var(--primary)',
+                                    border: '1px solid rgba(255, 90, 54, 0.3)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="form-label">End Date & Time (Optional)</label>
+                            <input
+                              type="datetime-local"
+                              className="form-input"
+                              value={formData.endDateTime || ''}
+                              onChange={(e) => updateField('endDateTime', e.target.value)}
+                            />
+                            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock size={12} color="var(--primary)" /> Popular hours:
+                              </span>
+                              {[
+                                { time: '14:00', label: '2 PM' },
+                                { time: '18:00', label: '6 PM' },
+                                { time: '21:00', label: '9 PM' },
+                                { time: '22:00', label: '10 PM' },
+                                { time: '23:00', label: '11 PM' },
+                              ].map(({ time, label }) => (
+                                <button
+                                  key={time}
+                                  type="button"
+                                  onClick={() => setQuickTime('endDateTime', time)}
+                                  style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    background: 'rgba(255, 90, 54, 0.12)',
+                                    color: 'var(--primary)',
+                                    border: '1px solid rgba(255, 90, 54, 0.3)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '18px' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                            <input
+                              type="checkbox"
+                              checked={formData.isRecurring || false}
+                              onChange={(e) => updateField('isRecurring', e.target.checked)}
+                            />
+                            <span>This is a recurring event (e.g. Weekly Karaoke, Sunday Service)</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Restaurant Specific */}
+                    {formData.listingType === 'restaurant' && (
+                      <div>
+                        <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
+                          <div>
+                            <label className="form-label">
+                              Cuisine Type <span className="req">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="e.g. Authentic Yoruba Native, Grills & Pastries"
+                              value={formData.cuisineType || ''}
+                              onChange={(e) => updateField('cuisineType', e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label">Price Range</label>
+                            <select
+                              className="form-select"
+                              value={formData.priceRange || '$$'}
+                              onChange={(e) => updateField('priceRange', e.target.value)}
+                            >
+                              <option value="$">$ - Budget (Under ₦2,500)</option>
+                              <option value="$$">$$ - Moderate (₦2,500 - ₦7,500)</option>
+                              <option value="$$$">$$$ - Upscale (₦7,500 - ₦20,000)</option>
+                              <option value="$$$$">$$$$ - Fine Dining (₦20,000+)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
+                          <div>
+                            <label className="form-label">Operating Hours</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="e.g. Mon - Sat: 08:00 AM - 10:00 PM"
+                              value={formData.operatingHours || ''}
+                              onChange={(e) => updateField('operatingHours', e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label">Online Menu / Order Link</label>
+                            <input
+                              type="url"
+                              className="form-input"
+                              placeholder="https://..."
+                              value={formData.menuLink || ''}
+                              onChange={(e) => updateField('menuLink', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Facility Specific */}
+                    {formData.listingType === 'facility' && (
+                      <div>
+                        <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
+                          <div>
+                            <label className="form-label">
+                              Facility Category <span className="req">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="e.g. Tertiary Hospital, Tech Co-working Space"
+                              value={formData.facilityCategory || ''}
+                              onChange={(e) => updateField('facilityCategory', e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="form-label">24/7 Emergency Hotline</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="+234..."
+                              value={formData.emergencyContact || ''}
+                              onChange={(e) => updateField('emergencyContact', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Universal Links & Contact */}
+                    <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
+                      <div>
+                        <label className="form-label">WhatsApp / Public Contact Phone</label>
+                        <input
+                          type="tel"
+                          className="form-input"
+                          placeholder="e.g. 08031234567"
+                          value={formData.contactPhone || ''}
+                          onChange={(e) => updateField('contactPhone', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">Website / Ticket Booking Link</label>
+                        <input
+                          type="url"
+                          className="form-input"
+                          placeholder="https://..."
+                          value={formData.externalLink || ''}
+                          onChange={(e) => updateField('externalLink', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 4: CAC & Legal Verification (Compulsory for Restaurant & Facility) */}
+                {step === 4 && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                      <ShieldCheck size={24} color="var(--accent-emerald)" />
+                      <h3 style={{ fontSize: '1.3rem' }}>Step 4: Legal & Business Verification</h3>
+                    </div>
+
+                    {formData.listingType === 'restaurant' || formData.listingType === 'facility' ? (
+                      <div
                         style={{
-                          position: 'absolute',
-                          top: '4px',
-                          right: '4px',
-                          background: 'rgba(0,0,0,0.7)',
-                          color: '#fff',
-                          borderRadius: '50%',
-                          padding: '2px',
+                          padding: '14px 18px',
+                          borderRadius: '12px',
+                          background: 'rgba(245, 158, 11, 0.12)',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.88rem',
+                          marginBottom: '20px',
                         }}
                       >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                        <strong style={{ color: 'var(--accent-amber)' }}>Compulsory Verification:</strong> To protect city residents, all food establishments and public facilities must provide valid legal verification proof (CAC Certificate, Ogun State operating permit, or medical practice license).
+                      </div>
+                    ) : (
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                        Optional for cultural & community events, but uploading permits gives your listing a <strong>Verified Badge</strong>.
+                      </p>
+                    )}
 
-                {(formData.galleryImageUrls?.length || 0) < 10 ? (
-                  <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'inline-flex' }}>
-                    {isUploadingGallery ? <Loader2 size={16} className="glow-animation" /> : <ImageIcon size={16} />}
-                    <span>{isUploadingGallery ? 'Uploading Photos...' : '+ Add Gallery Photos'}</span>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleGalleryUpload}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingGallery}
-                    />
-                  </label>
-                ) : (
-                  <div style={{ fontSize: '0.82rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
-                    ✓ Maximum 10 gallery photos reached. Remove one above to upload a different photo.
+                    {/* Upload Section */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <label className="form-label">
+                        Upload CAC Certificate / Registration Document{' '}
+                        {(formData.listingType === 'restaurant' || formData.listingType === 'facility') && (
+                          <span className="req">*</span>
+                        )}
+                      </label>
+
+                      {/* Uploaded Documents List */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                        {(formData.legalDocumentUrls || []).map((url, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 14px',
+                              background: 'var(--bg-input)',
+                              borderRadius: '10px',
+                              border: '1px solid var(--border-color)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                              <FileText size={16} color="var(--accent-emerald)" />
+                              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                                Verified Document #{idx + 1}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateField(
+                                  'legalDocumentUrls',
+                                  formData.legalDocumentUrls?.filter((_, i) => i !== idx)
+                                )
+                              }
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              <X size={15} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'inline-flex' }}>
+                        {isUploadingLegal ? <Loader2 size={16} className="glow-animation" /> : <Upload size={16} />}
+                        <span>{isUploadingLegal ? 'Uploading Document...' : '+ Attach PDF / Image Proof'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,image/*"
+                          onChange={handleLegalDocUpload}
+                          style={{ display: 'none' }}
+                          disabled={isUploadingLegal}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Optional Registration Numbers */}
+                    <div className="submit-form-grid">
+                      <div>
+                        <label className="form-label">CAC Number (Optional)</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="e.g. RC-1049281"
+                          value={formData.cacNumber || ''}
+                          onChange={(e) => updateField('cacNumber', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">License / Permit Number (Optional)</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="e.g. OG-HOSP-2024-88"
+                          value={formData.licenseNumber || ''}
+                          onChange={(e) => updateField('licenseNumber', e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
 
-          {/* STEP 3: Type-Specific Details */}
-          {step === 3 && (
-            <div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>
-                Step 3: {formData.listingType === 'event' ? 'Event Schedule' : formData.listingType === 'restaurant' ? 'Dining Details' : 'Facility Info'}
-              </h3>
+                {/* STEP 5: Submitter Contact & Submit */}
+                {step === 5 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step 5: Submitter Information</h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                      We will send status notifications and moderation feedback directly to this email address.
+                    </p>
 
-              {/* Event Specific */}
-              {formData.listingType === 'event' && (
-                <div>
-                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
-                    <div>
+                    <div style={{ marginBottom: '18px' }}>
                       <label className="form-label">
-                        Start Date & Time <span className="req">*</span>
+                        Your Full Name <span className="req">*</span>
                       </label>
                       <input
-                        type="datetime-local"
+                        type="text"
                         className="form-input"
-                        value={formData.startDateTime || ''}
-                        onChange={(e) => updateField('startDateTime', e.target.value)}
+                        placeholder="e.g. Olawale Adeleke"
+                        value={formData.submitterName}
+                        onChange={(e) => updateField('submitterName', e.target.value)}
                       />
-                      <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={12} color="var(--primary)" /> Popular hours:
-                        </span>
-                        {[
-                          { time: '09:00', label: '9 AM' },
-                          { time: '12:00', label: '12 PM' },
-                          { time: '16:00', label: '4 PM' },
-                          { time: '18:00', label: '6 PM' },
-                          { time: '20:00', label: '8 PM' },
-                        ].map(({ time, label }) => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setQuickTime('startDateTime', time)}
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: 'rgba(255, 90, 54, 0.12)',
-                              color: 'var(--primary)',
-                              border: '1px solid rgba(255, 90, 54, 0.3)',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
                     </div>
-                    <div>
-                      <label className="form-label">End Date & Time (Optional)</label>
-                      <input
-                        type="datetime-local"
-                        className="form-input"
-                        value={formData.endDateTime || ''}
-                        onChange={(e) => updateField('endDateTime', e.target.value)}
-                      />
-                      <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={12} color="var(--primary)" /> Popular hours:
-                        </span>
-                        {[
-                          { time: '14:00', label: '2 PM' },
-                          { time: '18:00', label: '6 PM' },
-                          { time: '21:00', label: '9 PM' },
-                          { time: '22:00', label: '10 PM' },
-                          { time: '23:00', label: '11 PM' },
-                        ].map(({ time, label }) => (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setQuickTime('endDateTime', time)}
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: 'rgba(255, 90, 54, 0.12)',
-                              color: 'var(--primary)',
-                              border: '1px solid rgba(255, 90, 54, 0.3)',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            {label}
-                          </button>
-                        ))}
+
+                    <div className="submit-form-grid" style={{ marginBottom: '24px' }}>
+                      <div>
+                        <label className="form-label">
+                          Your Email Address <span className="req">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          className="form-input"
+                          placeholder="name@company.com"
+                          value={formData.submitterEmail}
+                          onChange={(e) => updateField('submitterEmail', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">
+                          Your Phone Number <span className="req">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          className="form-input"
+                          placeholder="080..."
+                          value={formData.submitterPhone}
+                          onChange={(e) => updateField('submitterPhone', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
+                )}
 
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.isRecurring || false}
-                        onChange={(e) => updateField('isRecurring', e.target.checked)}
-                      />
-                      <span>This is a recurring event (e.g. Weekly Karaoke, Sunday Service)</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* Restaurant Specific */}
-              {formData.listingType === 'restaurant' && (
-                <div>
-                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
-                    <div>
-                      <label className="form-label">
-                        Cuisine Type <span className="req">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="e.g. Authentic Yoruba Native, Grills & Pastries"
-                        value={formData.cuisineType || ''}
-                        onChange={(e) => updateField('cuisineType', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Price Range</label>
-                      <select
-                        className="form-select"
-                        value={formData.priceRange || '$$'}
-                        onChange={(e) => updateField('priceRange', e.target.value)}
-                      >
-                        <option value="$">$ - Budget (Under ₦2,500)</option>
-                        <option value="$$">$$ - Moderate (₦2,500 - ₦7,500)</option>
-                        <option value="$$$">$$$ - Upscale (₦7,500 - ₦20,000)</option>
-                        <option value="$$$$">$$$$ - Fine Dining (₦20,000+)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
-                    <div>
-                      <label className="form-label">Operating Hours</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="e.g. Mon - Sat: 08:00 AM - 10:00 PM"
-                        value={formData.operatingHours || ''}
-                        onChange={(e) => updateField('operatingHours', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Online Menu / Order Link</label>
-                      <input
-                        type="url"
-                        className="form-input"
-                        placeholder="https://..."
-                        value={formData.menuLink || ''}
-                        onChange={(e) => updateField('menuLink', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Facility Specific */}
-              {formData.listingType === 'facility' && (
-                <div>
-                  <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
-                    <div>
-                      <label className="form-label">
-                        Facility Category <span className="req">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="e.g. Tertiary Hospital, Tech Co-working Space"
-                        value={formData.facilityCategory || ''}
-                        onChange={(e) => updateField('facilityCategory', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">24/7 Emergency Hotline</label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        placeholder="+234..."
-                        value={formData.emergencyContact || ''}
-                        onChange={(e) => updateField('emergencyContact', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Universal Links & Contact */}
-              <div className="submit-form-grid" style={{ marginBottom: '18px' }}>
-                <div>
-                  <label className="form-label">WhatsApp / Public Contact Phone</label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    placeholder="e.g. 08031234567"
-                    value={formData.contactPhone || ''}
-                    onChange={(e) => updateField('contactPhone', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="form-label">Website / Ticket Booking Link</label>
-                  <input
-                    type="url"
-                    className="form-input"
-                    placeholder="https://..."
-                    value={formData.externalLink || ''}
-                    onChange={(e) => updateField('externalLink', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: CAC & Legal Verification (Compulsory for Restaurant & Facility) */}
-          {step === 4 && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <ShieldCheck size={24} color="var(--accent-emerald)" />
-                <h3 style={{ fontSize: '1.3rem' }}>Step 4: Legal & Business Verification</h3>
-              </div>
-
-              {formData.listingType === 'restaurant' || formData.listingType === 'facility' ? (
+                {/* Wizard Navigation Buttons */}
                 <div
                   style={{
-                    padding: '14px 18px',
-                    borderRadius: '12px',
-                    background: 'rgba(245, 158, 11, 0.12)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.88rem',
-                    marginBottom: '20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '36px',
+                    paddingTop: '20px',
+                    borderTop: '1px solid var(--border-color)',
                   }}
                 >
-                  <strong style={{ color: 'var(--accent-amber)' }}>Compulsory Verification:</strong> To protect city residents, all food establishments and public facilities must provide valid legal verification proof (CAC Certificate, Ogun State operating permit, or medical practice license).
-                </div>
-              ) : (
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
-                  Optional for cultural & community events, but uploading permits gives your listing a <strong>Verified Badge</strong>.
-                </p>
-              )}
-
-              {/* Upload Section */}
-              <div style={{ marginBottom: '24px' }}>
-                <label className="form-label">
-                  Upload CAC Certificate / Registration Document{' '}
-                  {(formData.listingType === 'restaurant' || formData.listingType === 'facility') && (
-                    <span className="req">*</span>
+                  {step > 1 ? (
+                    <button type="button" onClick={handlePrev} className="btn btn-secondary">
+                      <ChevronLeft size={16} />
+                      <span>Back</span>
+                    </button>
+                  ) : (
+                    <div />
                   )}
-                </label>
 
-                {/* Uploaded Documents List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                  {(formData.legalDocumentUrls || []).map((url, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 14px',
-                        background: 'var(--bg-input)',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border-color)',
-                      }}
+                  {step < 5 ? (
+                    <button type="button" onClick={handleNext} className="btn btn-primary">
+                      <span>Continue</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="btn btn-primary"
+                      style={{ padding: '12px 28px' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                        <FileText size={16} color="var(--accent-emerald)" />
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                          Verified Document #{idx + 1}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateField(
-                            'legalDocumentUrls',
-                            formData.legalDocumentUrls?.filter((_, i) => i !== idx)
-                          )
-                        }
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        <X size={15} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <label className="btn btn-secondary" style={{ cursor: 'pointer', display: 'inline-flex' }}>
-                  {isUploadingLegal ? <Loader2 size={16} className="glow-animation" /> : <Upload size={16} />}
-                  <span>{isUploadingLegal ? 'Uploading Document...' : '+ Attach PDF / Image Proof'}</span>
-                  <input
-                    type="file"
-                    accept=".pdf,image/*"
-                    onChange={handleLegalDocUpload}
-                    style={{ display: 'none' }}
-                    disabled={isUploadingLegal}
-                  />
-                </label>
-              </div>
-
-              {/* Optional Registration Numbers */}
-              <div className="submit-form-grid">
-                <div>
-                  <label className="form-label">CAC Number (Optional)</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. RC-1049281"
-                    value={formData.cacNumber || ''}
-                    onChange={(e) => updateField('cacNumber', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="form-label">License / Permit Number (Optional)</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. OG-HOSP-2024-88"
-                    value={formData.licenseNumber || ''}
-                    onChange={(e) => updateField('licenseNumber', e.target.value)}
-                  />
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="glow-animation" />
+                          <span>Submitting Listing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={18} />
+                          <span>Submit Listing For Review</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* STEP 5: Submitter Contact & Submit */}
-          {step === 5 && (
-            <div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step 5: Submitter Information</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
-                We will send status notifications and moderation feedback directly to this email address.
-              </p>
-
-              <div style={{ marginBottom: '18px' }}>
-                <label className="form-label">
-                  Your Full Name <span className="req">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Olawale Adeleke"
-                  value={formData.submitterName}
-                  onChange={(e) => updateField('submitterName', e.target.value)}
-                />
-              </div>
-
-              <div className="submit-form-grid" style={{ marginBottom: '24px' }}>
-                <div>
-                  <label className="form-label">
-                    Your Email Address <span className="req">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="name@company.com"
-                    value={formData.submitterEmail}
-                    onChange={(e) => updateField('submitterEmail', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="form-label">
-                    Your Phone Number <span className="req">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    placeholder="080..."
-                    value={formData.submitterPhone}
-                    onChange={(e) => updateField('submitterPhone', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Wizard Navigation Buttons */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '36px',
-              paddingTop: '20px',
-              borderTop: '1px solid var(--border-color)',
-            }}
-          >
-            {step > 1 ? (
-              <button type="button" onClick={handlePrev} className="btn btn-secondary">
-                <ChevronLeft size={16} />
-                <span>Back</span>
-              </button>
-            ) : (
-              <div />
-            )}
-
-            {step < 5 ? (
-              <button type="button" onClick={handleNext} className="btn btn-primary">
-                <span>Continue</span>
-                <ChevronRight size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="btn btn-primary"
-                style={{ padding: '12px 28px' }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={18} className="glow-animation" />
-                    <span>Submitting Listing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} />
-                    <span>Submit Listing For Review</span>
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
       )}
-    </div>
-  );
+            </div>
+          );
 }

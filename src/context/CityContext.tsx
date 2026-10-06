@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { City } from '@/types/api';
 import { api } from '@/lib/api-client';
+import { getNeighborhoodsForCity as getNeighborhoodsHelper } from '@/lib/utils';
 
 interface CityContextType {
   currentCity: string;
@@ -10,11 +11,18 @@ interface CityContextType {
   cities: City[];
   isLoadingCities: boolean;
   activeCityObj?: City;
+  getNeighborhoodsForCity: (cityName?: string) => string[];
 }
 
 const DEFAULT_CITIES: City[] = [
-  { id: '1', name: 'Abeokuta', state: 'Ogun', isActive: true, listingCount: 18 },
-  { id: '2', name: 'Lagos', state: 'Lagos', isActive: false },
+  {
+    id: '1', name: 'Abeokuta', state: 'Ogun', isActive: true, listingCount: 18,
+    neighborhoods: ['Ibara', 'Kuto', 'Oke-Mosan', 'Adigbe', 'Panseke', 'Onikolobo']
+  },
+  {
+    id: '2', name: 'Lagos', state: 'Lagos', isActive: true, listingCount: 8,
+    neighborhoods: ['Ikeja', 'Lekki Phase 1', 'Victoria Island', 'Ikoyi', 'Yaba', 'Surulere']
+  },
   { id: '3', name: 'Ibadan', state: 'Oyo', isActive: false },
   { id: '4', name: 'Abuja', state: 'FCT', isActive: false },
 ];
@@ -55,6 +63,11 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
   const activeCityObj = cities.find((c) => c.name.toLowerCase() === currentCity.toLowerCase());
 
+  const getNeighborhoodsForCity = (cityName?: string) => {
+    const targetCity = cityName || currentCity;
+    return getNeighborhoodsHelper(targetCity, cities);
+  };
+
   return (
     <CityContext.Provider
       value={{
@@ -62,7 +75,8 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         setCurrentCity,
         cities,
         isLoadingCities,
-        activeCityObj,
+        activeCityObj, getNeighborhoodsForCity,
+
       }}
     >
       {children}

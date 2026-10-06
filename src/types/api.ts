@@ -20,6 +20,7 @@ export interface City {
   state: string;
   isActive: boolean;
   listingCount?: number;
+  neighborhoods?: string[];
 }
 
 export interface Category {

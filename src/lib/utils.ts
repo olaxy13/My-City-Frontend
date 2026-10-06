@@ -1,4 +1,42 @@
-import { CategorySlug } from '@/types/api';
+import { CategorySlug, City } from '@/types/api';
+
+
+export const NEIGHBORHOODS_BY_CITY: Record<string, string[]> = {
+  Abeokuta: [
+    'Ibara', 'Kuto', 'Oke-Mosan', 'Adigbe', 'Panseke',
+    'Onikolobo', 'Idi-Aba', 'Lalubu', 'Obantoko', 'Camp', 'Totoro'
+  ],
+  Lagos: [
+    'Ikeja', 'Lekki Phase 1', 'Victoria Island', 'Ikoyi', 'Yaba',
+    'Surulere', 'Maryland', 'Ajah', 'Chevron / Ikota', 'Ebute Metta', 'Alausa'
+  ],
+  Ibadan: ['Bodija', 'Ring Road', 'Oluyole', 'Jericho', 'Akobo', 'Iyaganku', 'Dugbe'],
+  Abuja: ['Maitama', 'Wuse 2', 'Garki', 'Jabi', 'Utako', 'Gwarinpa', 'Asokoro'],
+  'Port Harcourt': ['GRA Phase 1', 'GRA Phase 2', 'Aba Road', 'Trans Amadi', 'Rumuola'],
+};
+
+/**
+ * Returns neighborhoods for a given city name, checking API cities list first, then static fallbacks.
+ */
+export function getNeighborhoodsForCity(cityName: string, cities?: City[]): string[] {
+  if (!cityName) return NEIGHBORHOODS_BY_CITY['Abeokuta'];
+
+  const matchedCity = cities?.find(
+    (c) => c.name.toLowerCase() === cityName.toLowerCase()
+  );
+
+  if (matchedCity?.neighborhoods && matchedCity.neighborhoods.length > 0) {
+    return matchedCity.neighborhoods;
+  }
+
+  // Fallback to static mapping
+  const key = Object.keys(NEIGHBORHOODS_BY_CITY).find(
+    (k) => k.toLowerCase() === cityName.toLowerCase()
+  );
+
+  return key ? NEIGHBORHOODS_BY_CITY[key] : ['Central', 'Downtown', 'GRA'];
+}
+
 
 /**
  * Generate standard Nigerian / International WhatsApp chat link

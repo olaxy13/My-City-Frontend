@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
@@ -35,6 +35,23 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close city dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCityDropdownOpen(false);
+      }
+    }
+
+    if (isCityDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCityDropdownOpen]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,13 +88,13 @@ export default function Navbar() {
                 City<span style={{ color: 'var(--primary)' }}>Discovery</span>
               </div>
               <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Abeokuta Edition
+                {currentCity} Edition
               </div>
             </div>
           </Link>
 
           {/* City Selector Pill */}
-          <div style={{ position: 'relative' }} className="city-pill-wrap">
+          <div ref={dropdownRef} style={{ position: 'relative' }} className="city-pill-wrap">
             <button
               onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
               className="glass-pill"
@@ -88,6 +105,7 @@ export default function Navbar() {
                 background: 'var(--bg-card)',
                 color: 'var(--text-primary)',
                 padding: '6px 10px',
+                cursor: 'pointer',
               }}
               title="Change active city"
             >
@@ -111,12 +129,17 @@ export default function Navbar() {
                 className="glass-card"
                 style={{
                   position: 'absolute',
-                  top: '115%',
+                  top: 'calc(100% + 8px)',
                   left: 0,
                   width: '230px',
                   padding: '10px',
-                  zIndex: 60,
-                  boxShadow: '0 15px 35px rgba(0,0,0,0.3)',
+                  zIndex: 100,
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-card)',
+                  boxShadow: '0 20px 45px rgba(0,0,0,0.45)',
+                  borderRadius: '14px',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
                 }}
               >
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', padding: '0 6px' }}>
@@ -139,13 +162,15 @@ export default function Navbar() {
                       padding: '8px 10px',
                       borderRadius: '8px',
                       textAlign: 'left',
-                      background: city.name === currentCity ? 'rgba(255, 90, 54, 0.15)' : 'transparent',
+                      background: city.name.toLowerCase() === currentCity.toLowerCase() ? 'rgba(255, 90, 54, 0.18)' : 'transparent',
                       color: city.isActive ? 'var(--text-primary)' : 'var(--text-muted)',
                       cursor: city.isActive ? 'pointer' : 'not-allowed',
                       opacity: city.isActive ? 1 : 0.65,
+                      transition: 'background 0.15s ease',
+                      border: 'none',
                     }}
                   >
-                    <span style={{ fontWeight: city.name === currentCity ? 700 : 500, fontSize: '0.9rem' }}>
+                    <span style={{ fontWeight: city.name.toLowerCase() === currentCity.toLowerCase() ? 700 : 500, fontSize: '0.9rem' }}>
                       {city.name}
                     </span>
                     {city.isActive ? (
