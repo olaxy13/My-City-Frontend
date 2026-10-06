@@ -6,6 +6,7 @@ import { CountdownSliderItem } from '@/types/api';
 import { CATEGORY_CONFIG, formatEventDate, formatEventTime } from '@/lib/utils';
 import CountdownBadge from '../listings/CountdownBadge';
 import AddToCalendarMenu from '../listings/AddToCalendarMenu';
+import { useCity } from '@/context/CityContext';
 import {
   ChevronLeft,
   ChevronRight,
@@ -22,6 +23,7 @@ interface CountdownHeroSliderProps {
 }
 
 export default function CountdownHeroSlider({ items = [], isLoading = false }: CountdownHeroSliderProps) {
+  const { currentCity } = useCity();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,7 +70,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         <div style={{ textAlign: 'center', padding: '24px' }}>
           <Sparkles size={36} color="var(--primary)" className="glow-animation" style={{ marginBottom: '12px' }} />
           <div style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>
-            Curating upcoming Abeokuta events...
+            Curating upcoming {currentCity || 'city'} events...
           </div>
         </div>
       </div>
@@ -89,7 +91,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '16px' }} />
         <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>No Upcoming Events Right Now</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
-          Be the first to host or promote an exciting event in Abeokuta!
+          Be the first to host or promote an exciting event in {currentCity || 'Lagos'}!
         </p>
         <Link href="/submit" className="btn btn-primary">
           + Submit Event Listing
@@ -336,7 +338,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
               description={current.description || ''}
               startDateTime={current.startDateTime}
               endDateTime={current.endDateTime}
-              location={`${current.neighborhood || ''}, ${current.city || 'Abeokuta'}`}
+              location={`${current.neighborhood || ''}, ${current.city || currentCity || 'Nigeria'}`}
               variant="outline"
             />
           </div>

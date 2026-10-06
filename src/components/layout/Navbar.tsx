@@ -393,7 +393,7 @@ export default function Navbar() {
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
             <input
               type="text"
-              placeholder="Search Abeokuta..."
+              placeholder={`Search ${currentCity || 'events, places'}...`}
               className="form-input"
               style={{ fontSize: '0.95rem' }}
               value={searchQuery}

@@ -3,13 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useCity } from '@/context/CityContext';
 import { Compass, Heart, ShieldCheck, Sparkles, MapPin, Mail } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
+  const { currentCity, getNeighborhoodsForCity } = useCity();
+
   if (pathname?.startsWith('/admin')) {
     return null;
   }
+
+  const neighborhoods = getNeighborhoodsForCity(currentCity || 'Abeokuta').slice(0, 8);
 
   return (
     <footer
@@ -52,7 +57,7 @@ export default function Footer() {
               </span>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>
-              The curated discovery directory connecting locals and visitors with the best happenings, verified restaurants, and essential facilities across Abeokuta.
+              The curated discovery directory connecting locals and visitors with the best happenings, verified restaurants, and essential facilities across {currentCity || 'Nigeria'}.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-emerald)', fontSize: '0.85rem', fontWeight: 600 }}>
               <ShieldCheck size={18} />
@@ -73,7 +78,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/explore?type=restaurant" style={{ color: 'var(--text-secondary)' }}>
-                  🍲 Top Restaurants & Amala Spots
+                  🍲 Top Restaurants & Dining Spots
                 </Link>
               </li>
               <li>
@@ -97,10 +102,10 @@ export default function Footer() {
           {/* Col 3: Popular Neighborhoods */}
           <div>
             <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '18px', color: 'var(--text-primary)' }}>
-              Abeokuta Neighborhoods
+              {currentCity || 'Popular'} Neighborhoods
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {['Ibara', 'Oke-Mosan', 'Kuto', 'Panseke', 'Ikija', 'Idi-Aba', 'Camp/FUNAAB'].map((n) => (
+              {neighborhoods.map((n) => (
                 <Link
                   key={n}
                   href={`/explore?neighborhood=${encodeURIComponent(n)}`}
