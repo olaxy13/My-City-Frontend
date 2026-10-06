@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 
 export default function SubmitListingPage() {
-  const { currentCity, cities, getNeighborhoodsForCity } = useCity();
+  const { currentCity, setCurrentCity, cities, getNeighborhoodsForCity } = useCity();
   const [step, setStep] = useState<number>(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -45,6 +45,7 @@ export default function SubmitListingPage() {
   const [successResult, setSuccessResult] = useState<{ id: string; editToken: string } | null>(null);
   const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false);
   const isRestoringDraft = useRef(false);
+  const hasUserEditedCity = useRef(false);
 
   // Form State
   const [formData, setFormData] = useState<CreateSubmissionInput>({
@@ -84,20 +85,30 @@ export default function SubmitListingPage() {
 
   const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([]);
 
-  // Automatically update neighborhoods whenever selected city changes
+  // Automatically update neighborhoods & sync city whenever selected city changes
   useEffect(() => {
-    const targetCity = formData.city || currentCity || 'Abeokuta';
-    const neighborhoods = getNeighborhoodsForCity(targetCity);
-    setAvailableNeighborhoods(neighborhoods);
-    // Auto-select the first neighborhood if current selection isn't in the list
-    if (!formData.neighborhood || !neighborhoods.includes(formData.neighborhood)) {
+    if (!hasUserEditedCity.current && !showResumeBanner) {
+      const targetCity = currentCity || 'Abeokuta';
+      const neighborhoods = getNeighborhoodsForCity(targetCity);
+      setAvailableNeighborhoods(neighborhoods);
       setFormData((prev) => ({
         ...prev,
         city: targetCity,
-        neighborhood: neighborhoods[0] || '',
+        neighborhood: neighborhoods.includes(prev.neighborhood) ? prev.neighborhood : (neighborhoods[0] || ''),
       }));
+    } else {
+      const targetCity = formData.city || currentCity || 'Abeokuta';
+      const neighborhoods = getNeighborhoodsForCity(targetCity);
+      setAvailableNeighborhoods(neighborhoods);
+      if (!formData.neighborhood || !neighborhoods.includes(formData.neighborhood)) {
+        setFormData((prev) => ({
+          ...prev,
+          city: targetCity,
+          neighborhood: neighborhoods[0] || '',
+        }));
+      }
     }
-  }, [formData.city, currentCity, cities]);
+  }, [formData.city, currentCity, showResumeBanner, cities]);
 
   // Media Upload State
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState<boolean>(false);
@@ -466,14 +477,39 @@ export default function SubmitListingPage() {
               type="button"
               onClick={() => {
                 clearDraft();
+                hasUserEditedCity.current = false;
+                const targetCity = currentCity || 'Abeokuta';
+                const defaultNeighborhoods = getNeighborhoodsForCity(targetCity);
                 setFormData({
-                  listingType: 'event', title: '', description: '', category: 'music',
-                  city: 'Abeokuta', neighborhood: 'Ibara', address: '', latitude: undefined,
-                  longitude: undefined, thumbnailUrl: '', galleryImageUrls: [], legalDocumentUrls: [],
-                  contactPhone: '', contactEmail: '', externalLink: '', submitterName: '',
-                  submitterEmail: '', submitterPhone: '', startDateTime: '', endDateTime: '',
-                  isRecurring: false, cuisineType: '', priceRange: '$$', operatingHours: '',
-                  menuLink: '', cacNumber: '', licenseNumber: '', facilityCategory: '', emergencyContact: '',
+                  listingType: 'event',
+                  title: '',
+                  description: '',
+                  category: 'music',
+                  city: targetCity,
+                  neighborhood: defaultNeighborhoods[0] || '',
+                  address: '',
+                  latitude: undefined,
+                  longitude: undefined,
+                  thumbnailUrl: '',
+                  galleryImageUrls: [],
+                  legalDocumentUrls: [],
+                  contactPhone: '',
+                  contactEmail: '',
+                  externalLink: '',
+                  submitterName: '',
+                  submitterEmail: '',
+                  submitterPhone: '',
+                  startDateTime: '',
+                  endDateTime: '',
+                  isRecurring: false,
+                  cuisineType: '',
+                  priceRange: '$$',
+                  operatingHours: '',
+                  menuLink: '',
+                  cacNumber: '',
+                  licenseNumber: '',
+                  facilityCategory: '',
+                  emergencyContact: '',
                 });
                 setStep(1);
                 setShowResumeBanner(false);
@@ -745,7 +781,12 @@ export default function SubmitListingPage() {
                   <select
                     className="form-select"
                     value={formData.city}
-                    onChange={(e) => updateField('city', e.target.value)}
+                    onChange={(e) => {
+                      hasUserEditedCity.current = true;
+                      const selectedCity = e.target.value;
+                      updateField('city', selectedCity);
+                      setCurrentCity(selectedCity);
+                    }}
                   >
                     {cities.map((c) => (
                       <option key={c.id} value={c.name}>
