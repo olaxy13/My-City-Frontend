@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
-import { ListingDetail } from '@/types/api';
+import { ListingDetail, TicketTier } from '@/types/api';
 import {
   CATEGORY_CONFIG,
   getWhatsAppLink,
@@ -15,6 +15,8 @@ import {
 } from '@/lib/utils';
 import CountdownBadge from '@/components/listings/CountdownBadge';
 import AddToCalendarMenu from '@/components/listings/AddToCalendarMenu';
+import EventPassPreviewCard from '@/components/tickets/EventPassPreviewCard';
+import CheckoutModal from '@/components/tickets/CheckoutModal';
 import {
   MapPin,
   MessageCircle,
@@ -33,6 +35,7 @@ import {
   Utensils,
   Building2,
   Check,
+  Ticket,
 } from 'lucide-react';
 
 export default function ListingDetailPage() {
@@ -43,6 +46,8 @@ export default function ListingDetailPage() {
   const [activeImage, setActiveImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [copiedShare, setCopiedShare] = useState<boolean>(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
+  const [selectedTierForModal, setSelectedTierForModal] = useState<TicketTier | null>(null);
 
   useEffect(() => {
     async function loadListing() {
@@ -95,6 +100,16 @@ export default function ListingDetailPage() {
   const isEvent = listing.listingType === 'event';
   const isRestaurant = listing.listingType === 'restaurant';
   const isFacility = listing.listingType === 'facility';
+  const hasTicketTiers = Boolean(isEvent && listing.ticketTiers && listing.ticketTiers.length > 0);
+
+  const handleOpenCheckout = (tier?: TicketTier) => {
+    if (tier) {
+      setSelectedTierForModal(tier);
+    } else if (listing?.ticketTiers && listing.ticketTiers.length > 0) {
+      setSelectedTierForModal(listing.ticketTiers[0]);
+    }
+    setIsCheckoutModalOpen(true);
+  };
 
   const hasCac =
     (listing.legalDocumentUrls && listing.legalDocumentUrls.length > 0) ||
@@ -267,6 +282,18 @@ export default function ListingDetailPage() {
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Tix Africa Style "Get a Ticket" CTA under Flyer */}
+          {hasTicketTiers && (
+            <button
+              type="button"
+              onClick={() => handleOpenCheckout()}
+              className="btn btn-primary get-ticket-flyer-btn glow-hover"
+            >
+              <Ticket size={22} />
+              <span>Get a Ticket</span>
+            </button>
           )}
 
           {/* Live Countdown Banner (If Event) */}
@@ -492,6 +519,15 @@ export default function ListingDetailPage() {
             </div>
           )}
 
+          {/* Official Event Ticket Pass Preview Card (ODS & Tix Africa Style) */}
+          {hasTicketTiers && (
+            <EventPassPreviewCard
+              listingTitle={listing.title}
+              ticketTiers={listing.ticketTiers || []}
+              onOpenCheckout={(tier) => handleOpenCheckout(tier)}
+            />
+          )}
+
           {/* Primary Outbound Action CTAs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* WhatsApp Direct Chat */}
@@ -589,7 +625,118 @@ export default function ListingDetailPage() {
         </div>
       </div>
 
+      {/* 2-Step Ticket Checkout Modal (ODS & Tix.africa Style) */}
+      {hasTicketTiers && (
+        <CheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => setIsCheckoutModalOpen(false)}
+          listingId={listing.id}
+          listingTitle={listing.title}
+          eventDate={listing.eventDetails?.startDateTime}
+          venueAddress={`${listing.address || listing.neighborhood}, ${listing.city}`}
+          ticketTiers={listing.ticketTiers || []}
+          initialSelectedTierId={selectedTierForModal?.id}
+        />
+      )}
+
+      {/* Mobile Sticky Floating Ticket Bar */}
+      {hasTicketTiers && (
+        <div className="mobile-ticket-bar">
+          <div className="mobile-ticket-info">
+            <span className="mobile-bar-label">Official Passes</span>
+            <strong className="mobile-bar-price">
+              {listing.ticketTiers && listing.ticketTiers.length > 0 && Math.min(...listing.ticketTiers.map(t => t.price)) === 0
+                ? 'Free Entry'
+                : `From ₦${Math.min(...(listing.ticketTiers || []).map(t => t.price)).toLocaleString()}`}
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenCheckout()}
+            className="btn btn-primary mobile-buy-btn"
+          >
+            <Ticket size={18} />
+            <span>Get a Ticket</span>
+          </button>
+        </div>
+      )}
+
       <style jsx>{`
+        .get-ticket-flyer-btn {
+          width: 100%;
+          padding: 16px 24px;
+          font-size: 1.15rem;
+          font-weight: 800;
+          border-radius: 16px;
+          margin-top: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: linear-gradient(135deg, #FF5A36 0%, #FF833E 100%);
+          color: #fff;
+          border: none;
+          box-shadow: 0 8px 28px rgba(255, 90, 54, 0.45);
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .get-ticket-flyer-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 34px rgba(255, 90, 54, 0.6);
+        }
+
+        .mobile-ticket-bar {
+          display: none;
+        }
+
+        @media (max-width: 860px) {
+          .mobile-ticket-bar {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 45;
+            background: rgba(16, 18, 28, 0.96);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 12px 20px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+          }
+
+          .mobile-ticket-info {
+            display: flex;
+            flex-direction: column;
+          }
+
+          .mobile-bar-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+          }
+
+          .mobile-bar-price {
+            font-size: 1.1rem;
+            color: #10b981;
+            font-weight: 900;
+          }
+
+          .mobile-buy-btn {
+            padding: 10px 20px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+        }
+
         @media (min-width: 900px) {
           .detail-layout {
             grid-template-columns: 1.1fr 1fr !important;

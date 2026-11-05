@@ -10,7 +10,9 @@ import {
   CategorySlug,
   CreateSubmissionInput,
   CreateSubmissionPayload,
+  CreateTicketTierInput,
   Category,
+  NigerianBank,
 } from '@/types/api';
 import {
   CATEGORY_CONFIG,
@@ -34,6 +36,11 @@ import {
   Loader2,
   Copy,
   ExternalLink,
+  Ticket,
+  Plus,
+  Trash2,
+  Banknote,
+  Search,
 } from 'lucide-react';
 
 export default function SubmitListingPage() {
@@ -81,9 +88,26 @@ export default function SubmitListingPage() {
     // Facility specific
     facilityCategory: '',
     emergencyContact: '',
+    // Event Ticketing & Payouts
+    ticketTiers: [{ name: 'Regular', price: '', totalCapacity: '', description: '' }],
+    payoutBankCode: '',
+    payoutAccountNumber: '',
+    payoutAccountName: '',
   });
 
   const [availableNeighborhoods, setAvailableNeighborhoods] = useState<string[]>([]);
+
+  // Bank & Account Resolution State (for event payout setup)
+  const [banksList, setBanksList] = useState<NigerianBank[]>([]);
+  const [isResolvingAccount, setIsResolvingAccount] = useState<boolean>(false);
+  const [accountResolveError, setAccountResolveError] = useState<string>('');
+  const [banksLoaded, setBanksLoaded] = useState<boolean>(false);
+
+  // Computed step logic: events get an extra "Tickets" step
+  const isEvent = formData.listingType === 'event';
+  const totalSteps = isEvent ? 6 : 5;
+  const legalStep = isEvent ? 5 : 4;
+  const submitterStep = isEvent ? 6 : 5;
 
   // Automatically update neighborhoods & sync city whenever selected city changes
   useEffect(() => {
@@ -109,6 +133,53 @@ export default function SubmitListingPage() {
       }
     }
   }, [formData.city, currentCity, showResumeBanner, cities]);
+
+  // Fetch Nigerian banks list when user selects event type (deduplicated by bank code)
+  useEffect(() => {
+    if (isEvent && !banksLoaded) {
+      api.getPayoutBanks()
+        .then((banks) => {
+          if (Array.isArray(banks)) {
+            // Deduplicate banks by code to eliminate duplicate options and duplicate React keys
+            const uniqueBanks = banks.filter(
+              (bank, index, self) => index === self.findIndex((b) => b.code === bank.code)
+            );
+            setBanksList(uniqueBanks);
+          }
+          setBanksLoaded(true);
+        })
+        .catch((err) => console.error('Failed to fetch banks:', err));
+    }
+  }, [isEvent, banksLoaded]);
+
+  // Resolve bank account name when user enters 10-digit account number + bank code
+  useEffect(() => {
+    const acctNum = formData.payoutAccountNumber?.trim() || '';
+    const bankCode = formData.payoutBankCode?.trim() || '';
+    if (acctNum.length !== 10 || !bankCode) {
+      if (formData.payoutAccountName) {
+        setFormData((prev) => ({ ...prev, payoutAccountName: '' }));
+      }
+      setAccountResolveError('');
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsResolvingAccount(true);
+      setAccountResolveError('');
+      try {
+        const result = await api.resolveBankAccount(acctNum, bankCode);
+        setFormData((prev) => ({ ...prev, payoutAccountName: result.accountName }));
+      } catch (err: any) {
+        setAccountResolveError(err?.message || 'Could not verify account. Please check the details.');
+        setFormData((prev) => ({ ...prev, payoutAccountName: '' }));
+      } finally {
+        setIsResolvingAccount(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [formData.payoutAccountNumber, formData.payoutBankCode]);
 
   // Media Upload State
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState<boolean>(false);
@@ -307,8 +378,49 @@ export default function SubmitListingPage() {
       }
     }
 
-    if (currentStep === 4) {
-      // Compulsory CAC for Restaurant & Facility
+    // Step 4 for events: Ticket Tiers & Payout Bank validation
+    if (currentStep === 4 && isEvent) {
+      const tiers = formData.ticketTiers || [];
+      if (tiers.length === 0) {
+        setErrorMessage('Please add at least one ticket tier for your event.');
+        return false;
+      }
+      for (let i = 0; i < tiers.length; i++) {
+        if (!tiers[i].name.trim()) {
+          setErrorMessage(`Ticket tier #${i + 1} needs a name (e.g. "Regular", "VIP").`);
+          return false;
+        }
+        const parsedPrice = tiers[i].price === '' ? 0 : Number(tiers[i].price);
+        if (isNaN(parsedPrice) || parsedPrice < 0) {
+          setErrorMessage(`Ticket tier "${tiers[i].name}" price cannot be negative.`);
+          return false;
+        }
+        const parsedCap = Number(tiers[i].totalCapacity);
+        if (tiers[i].totalCapacity === '' || isNaN(parsedCap) || parsedCap < 1) {
+          setErrorMessage(`Ticket tier "${tiers[i].name}" must have a valid capacity number of at least 1.`);
+          return false;
+        }
+      }
+      // Payout bank validation (required for paid events)
+      const hasPaidTier = tiers.some((t) => (t.price !== '' ? Number(t.price) > 0 : false));
+      if (hasPaidTier) {
+        if (!formData.payoutBankCode?.trim()) {
+          setErrorMessage('Please select your bank for payout settlements.');
+          return false;
+        }
+        if (!formData.payoutAccountNumber?.trim() || formData.payoutAccountNumber.trim().length !== 10) {
+          setErrorMessage('Please enter a valid 10-digit bank account number.');
+          return false;
+        }
+        if (!formData.payoutAccountName?.trim()) {
+          setErrorMessage('Please wait for your account name to be verified before proceeding.');
+          return false;
+        }
+      }
+    }
+
+    // Legal/CAC step (dynamic number based on listing type)
+    if (currentStep === legalStep) {
       if (formData.listingType === 'restaurant' || formData.listingType === 'facility') {
         if (!formData.legalDocumentUrls || formData.legalDocumentUrls.length === 0) {
           setErrorMessage(
@@ -412,6 +524,24 @@ export default function SubmitListingPage() {
         ...(eventDetails ? { eventDetails } : {}),
         ...(restaurantDetails ? { restaurantDetails } : {}),
         ...(facilityDetails ? { facilityDetails } : {}),
+        // Event ticketing & payout fields
+        ...(formData.listingType === 'event' && formData.ticketTiers?.length
+          ? {
+              ticketTiers: formData.ticketTiers.map((t) => ({
+                name: t.name.trim(),
+                price: t.price === '' ? 0 : Number(t.price) || 0,
+                totalCapacity: Number(t.totalCapacity) || 1,
+                description: t.description?.trim() || undefined,
+              })),
+            }
+          : {}),
+        ...(formData.listingType === 'event' && formData.payoutBankCode?.trim()
+          ? {
+              payoutBankCode: formData.payoutBankCode.trim(),
+              payoutAccountNumber: formData.payoutAccountNumber?.trim(),
+              payoutAccountName: formData.payoutAccountName?.trim(),
+            }
+          : {}),
       };
 
       const res = await api.createSubmission(payload);
@@ -510,6 +640,10 @@ export default function SubmitListingPage() {
                   licenseNumber: '',
                   facilityCategory: '',
                   emergencyContact: '',
+                  ticketTiers: [{ name: 'Regular', price: '', totalCapacity: '', description: '' }],
+                  payoutBankCode: '',
+                  payoutAccountNumber: '',
+                  payoutAccountName: '',
                 });
                 setStep(1);
                 setShowResumeBanner(false);
@@ -634,13 +768,23 @@ export default function SubmitListingPage() {
         <div className="glass-card-static submit-wizard-card" style={{ padding: '36px 30px', borderRadius: '24px' }}>
           {/* Step Indicator */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', position: 'relative' }}>
-            {[
-              { num: 1, label: 'General' },
-              { num: 2, label: 'Photos' },
-              { num: 3, label: 'Details' },
-              { num: 4, label: 'Legal CAC' },
-              { num: 5, label: 'Submitter' },
-            ].map((s) => (
+            {(isEvent
+              ? [
+                  { num: 1, label: 'General' },
+                  { num: 2, label: 'Photos' },
+                  { num: 3, label: 'Details' },
+                  { num: 4, label: 'Tickets' },
+                  { num: 5, label: 'Legal CAC' },
+                  { num: 6, label: 'Submitter' },
+                ]
+              : [
+                  { num: 1, label: 'General' },
+                  { num: 2, label: 'Photos' },
+                  { num: 3, label: 'Details' },
+                  { num: 4, label: 'Legal CAC' },
+                  { num: 5, label: 'Submitter' },
+                ]
+            ).map((s) => (
               <div key={s.num} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>
                 <div
                   style={{
@@ -788,8 +932,8 @@ export default function SubmitListingPage() {
                       setCurrentCity(selectedCity);
                     }}
                   >
-                    {cities.map((c) => (
-                      <option key={c.id} value={c.name}>
+                    {cities.map((c, idx) => (
+                      <option key={`${c.id ?? c.name}-${idx}`} value={c.name}>
                         {c.name} ({c.state})
                       </option>
                     ))}
@@ -807,8 +951,8 @@ export default function SubmitListingPage() {
                   value={formData.neighborhood}
                   onChange={(e) => updateField('neighborhood', e.target.value)}
                 >
-                  {availableNeighborhoods.map((n) => (
-                    <option key={n} value={n}>
+                  {availableNeighborhoods.map((n, idx) => (
+                    <option key={`${n}-${idx}`} value={n}>
                       {n}
                     </option>
                   ))}
@@ -1240,12 +1384,239 @@ export default function SubmitListingPage() {
                   </div>
                 )}
 
-                {/* STEP 4: CAC & Legal Verification (Compulsory for Restaurant & Facility) */}
-                {step === 4 && (
+                {/* STEP 4 (events only): Ticket Tiers & Payout Bank Details */}
+                {step === 4 && isEvent && (
+                  <div>
+                    {/* --- Section Header --- */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                      <Ticket size={24} color="var(--primary)" />
+                      <h3 style={{ fontSize: '1.3rem' }}>Step 4: Ticketing & Payouts</h3>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '24px', lineHeight: 1.5 }}>
+                      Define your ticket tiers and add your bank account so earnings go directly to you after every sale.
+                    </p>
+
+                    {/* ===== TICKET TIERS ===== */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <label className="form-label" style={{ margin: 0 }}>
+                          Ticket Tiers <span className="req">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField('ticketTiers', [
+                              ...(formData.ticketTiers || []),
+                              { name: '', price: '', totalCapacity: '', description: '' },
+                            ])
+                          }
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                        >
+                          <Plus size={14} />
+                          <span>Add Tier</span>
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {(formData.ticketTiers || []).map((tier, idx) => (
+                          <div
+                            key={`tier-${idx}`}
+                            style={{
+                              background: 'var(--bg-input)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '14px',
+                              padding: '18px 18px 14px',
+                            }}
+                          >
+                            {/* Row 1: Tier name + delete */}
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'flex-start' }}>
+                              <div style={{ flex: 1 }}>
+                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Tier Name <span className="req">*</span></label>
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  placeholder='e.g. "Regular", "VIP", "Early Bird"'
+                                  value={tier.name}
+                                  onChange={(e) => {
+                                    const updated = [...(formData.ticketTiers || [])];
+                                    updated[idx] = { ...updated[idx], name: e.target.value };
+                                    updateField('ticketTiers', updated);
+                                  }}
+                                />
+                              </div>
+                              {(formData.ticketTiers || []).length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = (formData.ticketTiers || []).filter((_, i) => i !== idx);
+                                    updateField('ticketTiers', updated);
+                                  }}
+                                  style={{ color: '#EF4444', marginTop: '26px', flexShrink: 0 }}
+                                  title="Remove this tier"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Row 2: Price + Capacity */}
+                            <div className="submit-form-grid" style={{ marginBottom: '12px' }}>
+                              <div>
+                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Price (₦) <span className="req">*</span></label>
+                                <input
+                                  type="number"
+                                  className="form-input"
+                                  placeholder="0 for Free, or amount in ₦ (e.g. 5000)"
+                                  min={0}
+                                  value={tier.price ?? ''}
+                                  onChange={(e) => {
+                                    const raw = e.target.value;
+                                    const updated = [...(formData.ticketTiers || [])];
+                                    updated[idx] = {
+                                      ...updated[idx],
+                                      price: raw === '' ? '' : Math.max(0, parseInt(raw, 10) || 0),
+                                    };
+                                    updateField('ticketTiers', updated);
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Capacity <span className="req">*</span></label>
+                                <input
+                                  type="number"
+                                  className="form-input"
+                                  placeholder="e.g. 100"
+                                  min={1}
+                                  value={tier.totalCapacity ?? ''}
+                                  onChange={(e) => {
+                                    const raw = e.target.value;
+                                    const updated = [...(formData.ticketTiers || [])];
+                                    updated[idx] = {
+                                      ...updated[idx],
+                                      totalCapacity: raw === '' ? '' : Math.max(1, parseInt(raw, 10) || 1),
+                                    };
+                                    updateField('ticketTiers', updated);
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Row 3: Description */}
+                            <div>
+                              <label className="form-label" style={{ fontSize: '0.8rem' }}>Perks / Description (Optional)</label>
+                              <input
+                                type="text"
+                                className="form-input"
+                                placeholder='e.g. "VIP seating + complimentary drinks"'
+                                value={tier.description || ''}
+                                onChange={(e) => {
+                                  const updated = [...(formData.ticketTiers || [])];
+                                  updated[idx] = { ...updated[idx], description: e.target.value };
+                                  updateField('ticketTiers', updated);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ===== PAYOUT BANK DETAILS ===== */}
+                    <div
+                      style={{
+                        borderTop: '1px solid var(--border-color)',
+                        paddingTop: '24px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                        <Banknote size={20} color="#10B981" />
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Where should we send your earnings?</h4>
+                      </div>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '18px', lineHeight: 1.5 }}>
+                        Required for paid tiers. Your payout goes directly to this bank account after each transaction. Leave blank if all tiers are free.
+                      </p>
+
+                      {/* Bank Selector */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <label className="form-label">Bank Name <span className="req">*</span></label>
+                        <select
+                          className="form-input"
+                          value={formData.payoutBankCode || ''}
+                          onChange={(e) => {
+                            updateField('payoutBankCode', e.target.value);
+                            updateField('payoutAccountName', '');
+                          }}
+                        >
+                          <option value="">-- Select your bank --</option>
+                          {banksList.map((bank, idx) => (
+                            <option key={`${bank.code}-${bank.id ?? idx}`} value={bank.code}>{bank.name}</option>
+                          ))}
+                        </select>
+                        {banksList.length === 0 && (
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            Loading banks...
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Account Number */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <label className="form-label">Account Number (10 digits) <span className="req">*</span></label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="0123456789"
+                          maxLength={10}
+                          value={formData.payoutAccountNumber || ''}
+                          onChange={(e) => updateField('payoutAccountNumber', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        />
+                      </div>
+
+                      {/* Account Name (auto-resolved) */}
+                      <div style={{ marginBottom: '6px' }}>
+                        <label className="form-label">Account Name</label>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="Auto-populated after account verification"
+                            readOnly
+                            value={isResolvingAccount ? 'Verifying...' : (formData.payoutAccountName || '')}
+                            style={{
+                              background: 'var(--bg-secondary)',
+                              color: formData.payoutAccountName ? '#10B981' : 'var(--text-muted)',
+                              fontWeight: formData.payoutAccountName ? 700 : 400,
+                              cursor: 'not-allowed',
+                            }}
+                          />
+                          {isResolvingAccount && (
+                            <Loader2
+                              size={16}
+                              className="glow-animation"
+                              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }}
+                            />
+                          )}
+                        </div>
+                        {accountResolveError && (
+                          <p style={{ fontSize: '0.8rem', color: '#EF4444', marginTop: '4px' }}>{accountResolveError}</p>
+                        )}
+                        {formData.payoutAccountName && !isResolvingAccount && (
+                          <p style={{ fontSize: '0.78rem', color: '#10B981', marginTop: '4px' }}>
+                            ✓ Verified: {formData.payoutAccountName}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 4 (non-events) / STEP 5 (events): CAC & Legal Verification */}
+                {step === legalStep && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                       <ShieldCheck size={24} color="var(--accent-emerald)" />
-                      <h3 style={{ fontSize: '1.3rem' }}>Step 4: Legal & Business Verification</h3>
+                      <h3 style={{ fontSize: '1.3rem' }}>Step {legalStep}: Legal & Business Verification</h3>
                     </div>
 
                     {formData.listingType === 'restaurant' || formData.listingType === 'facility' ? (
@@ -1353,10 +1724,10 @@ export default function SubmitListingPage() {
                   </div>
                 )}
 
-                {/* STEP 5: Submitter Contact & Submit */}
-                {step === 5 && (
+                {/* STEP 5 (non-events) / STEP 6 (events): Submitter Contact & Submit */}
+                {step === submitterStep && (
                   <div>
-                    <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step 5: Submitter Information</h3>
+                    <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step {submitterStep}: Submitter Information</h3>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
                       We will send status notifications and moderation feedback directly to this email address.
                     </p>
@@ -1423,7 +1794,7 @@ export default function SubmitListingPage() {
                     <div />
                   )}
 
-                  {step < 5 ? (
+                  {step < totalSteps ? (
                     <button type="button" onClick={handleNext} className="btn btn-primary">
                       <span>Continue</span>
                       <ChevronRight size={16} />

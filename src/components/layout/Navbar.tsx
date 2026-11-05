@@ -18,6 +18,8 @@ import {
   Compass,
   Sparkles,
   Home,
+  Video,
+  QrCode,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -198,16 +200,17 @@ export default function Navbar() {
             background: 'var(--bg-input)',
             borderRadius: '9999px',
             border: '1.5px solid var(--border-color)',
-            padding: '4px 6px 4px 16px',
-            width: '320px',
-            maxWidth: '380px',
+            padding: '4px 6px 4px 14px',
+            width: '260px',
+            maxWidth: '300px',
+            margin: '0 12px',
           }}
           className="desktop-search"
         >
-          <Search size={16} color="var(--text-muted)" style={{ marginRight: '8px' }} />
+          <Search size={15} color="var(--text-muted)" style={{ marginRight: '6px', flexShrink: 0 }} />
           <input
             type="text"
-            placeholder="Search events, dining, clubs..."
+            placeholder="Search events, dining..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -215,7 +218,7 @@ export default function Navbar() {
               border: 'none',
               outline: 'none',
               color: 'var(--text-primary)',
-              fontSize: '0.88rem',
+              fontSize: '0.86rem',
               width: '100%',
             }}
           />
@@ -225,9 +228,10 @@ export default function Navbar() {
               background: 'var(--primary)',
               color: '#fff',
               borderRadius: '9999px',
-              padding: '6px 12px',
-              fontSize: '0.8rem',
+              padding: '5px 12px',
+              fontSize: '0.78rem',
               fontWeight: 700,
+              flexShrink: 0,
             }}
           >
             Find
@@ -235,47 +239,58 @@ export default function Navbar() {
         </form>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {/* Navigation Links */}
-          <div style={{ display: 'none', gap: '18px', alignItems: 'center' }} className="desktop-nav">
+          <div style={{ display: 'none', gap: '14px', alignItems: 'center' }} className="desktop-nav">
             <Link
-              href="/"
+              href="/explore"
               style={{
-                fontSize: '0.92rem',
+                fontSize: '0.9rem',
                 fontWeight: 600,
                 color: 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                transition: 'color 0.2s',
+                padding: '6px 10px',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
               }}
+              className="nav-link-item"
             >
-              <Home size={16} />
-              Home
+              <Sparkles size={15} color="var(--primary)" />
+              <span>Explore All</span>
             </Link>
+
             <Link
-              href="/explore"
+              href="/organizer/check-in"
               style={{
-                fontSize: '0.92rem',
+                fontSize: '0.9rem',
                 fontWeight: 600,
                 color: 'var(--text-secondary)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
-                transition: 'color 0.2s',
+                gap: '5px',
+                padding: '6px 10px',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
               }}
+              className="nav-link-item"
+              title="Event Check-in QR Scanner"
             >
-              <Sparkles size={16} color="var(--primary)" />
-              Explore All
+              <QrCode size={15} color="#10B981" />
+              <span>Gate Scanner</span>
             </Link>
           </div>
+
+          {/* Vertical Separator */}
+          <span className="desktop-divider" style={{ width: '1px', height: '22px', background: 'var(--border-color)', display: 'none' }} />
 
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '38px',
+              height: '38px',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -283,11 +298,12 @@ export default function Navbar() {
               background: 'var(--bg-card)',
               border: '1px solid var(--border-card)',
               color: 'var(--text-primary)',
+              flexShrink: 0,
             }}
             aria-label="Toggle Dark / Light Theme"
             title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
-            {theme === 'dark' ? <Sun size={18} color="#F59E0B" /> : <Moon size={18} color="#6366F1" />}
+            {theme === 'dark' ? <Sun size={17} color="#F59E0B" /> : <Moon size={17} color="#6366F1" />}
           </button>
 
           {/* Admin Indicator (only rendered when an admin is actively logged in) */}
@@ -295,10 +311,10 @@ export default function Navbar() {
             <Link
               href="/admin/moderation"
               className="btn btn-secondary"
-              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+              style={{ padding: '7px 12px', fontSize: '0.82rem', flexShrink: 0 }}
             >
-              <ShieldAlert size={16} color="var(--primary)" />
-              Admin ({admin?.role})
+              <ShieldAlert size={15} color="var(--primary)" />
+              <span>Admin</span>
             </Link>
           )}
 
@@ -306,9 +322,9 @@ export default function Navbar() {
           <Link
             href="/submit"
             className="btn btn-primary submit-btn"
-            style={{ padding: '9px 16px', fontSize: '0.9rem' }}
+            style={{ padding: '8px 16px', fontSize: '0.88rem', flexShrink: 0 }}
           >
-            <PlusCircle size={17} />
+            <PlusCircle size={16} />
             <span className="submit-btn-text">Submit Listing</span>
           </Link>
 
@@ -339,9 +355,17 @@ export default function Navbar() {
           .desktop-nav {
             display: flex !important;
           }
+          .desktop-divider {
+            display: inline-block !important;
+          }
           .mobile-toggle {
             display: none !important;
           }
+        }
+
+        .nav-link-item:hover {
+          background: rgba(255, 90, 54, 0.08) !important;
+          color: var(--text-primary) !important;
         }
 
         /* Tablet: hide brand subtitle */
@@ -420,6 +444,15 @@ export default function Navbar() {
           >
             <Sparkles size={18} color="var(--primary)" />
             Explore All Categories
+          </Link>
+
+          <Link
+            href="/organizer/check-in"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <QrCode size={18} color="#10B981" />
+            Gate Entrance Scanner
           </Link>
 
           <Link

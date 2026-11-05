@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -32,15 +33,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Explicit favicon link — .webp is not auto-handled by Next.js file conventions */}
         <link rel="icon" href="/favicon.webp" type="image/webp" />
         <link rel="apple-touch-icon" href="/favicon.webp" />
-        <script
+        <Script
+          id="global-error-suppression"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               if (typeof window !== 'undefined') {
+                // Intercept console.error to filter third-party wallet extension noise (MetaMask, Phantom, etc.)
+                var origConsoleError = console.error;
+                console.error = function() {
+                  var str = '';
+                  for (var i = 0; i < arguments.length; i++) {
+                    var a = arguments[i];
+                    if (typeof a === 'string') {
+                      str += ' ' + a;
+                    } else if (a && (a.message || a.stack)) {
+                      str += ' ' + (a.message || '') + ' ' + (a.stack || '');
+                    }
+                  }
+                  if (
+                    str.indexOf('MetaMask') !== -1 ||
+                    str.indexOf('chrome-extension://') !== -1 ||
+                    str.indexOf('Failed to connect to MetaMask') !== -1
+                  ) {
+                    return;
+                  }
+                  origConsoleError.apply(console, arguments);
+                };
+
                 window.addEventListener('unhandledrejection', function(e) {
                   var reason = String(e?.reason?.message || e?.reason || '');
                   var stack = String(e?.reason?.stack || '');

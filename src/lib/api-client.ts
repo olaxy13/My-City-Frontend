@@ -11,6 +11,13 @@ import {
   ResubmitSubmissionPayload,
   ListingStatus,
   ListingType,
+  InitializeTicketOrderInput,
+  InitializeTicketOrderResponse,
+  VerifyTicketPaymentResponse,
+  CheckInTicketRequest,
+  CheckInTicketResponse,
+  NigerianBank,
+  UpdateCommissionPayload,
 } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -28,7 +35,12 @@ export class ApiError extends Error {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const rootBase = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : endpoint.startsWith('/api/')
+    ? `${rootBase}${endpoint}`
+    : `${API_BASE_URL}${endpoint}`;
   const headers = new Headers(options.headers || {});
 
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -240,6 +252,64 @@ export const api = {
     return request<{ success: boolean; isPublished: boolean }>(`/admin/listings/${id}/publish-status`, {
       method: 'PUT',
       body: JSON.stringify({ isPublished }),
+    });
+  },
+
+  // --- Citybuzz Event Ticketing & Gate Scanner APIs ---
+  async initializeTicketOrder(payload: InitializeTicketOrderInput): Promise<InitializeTicketOrderResponse> {
+    return request<InitializeTicketOrderResponse>('/api/tickets/payment/initialize', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async verifyTicketOrder(reference: string): Promise<VerifyTicketPaymentResponse> {
+    return request<VerifyTicketPaymentResponse>(`/api/tickets/payment/verify/${encodeURIComponent(reference)}`);
+  },
+
+  async checkInTicket(payload: CheckInTicketRequest): Promise<CheckInTicketResponse> {
+    try {
+      return await request<CheckInTicketResponse>('/api/tickets/check-in', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    } catch (err: any) {
+      if (err instanceof ApiError && err.data) {
+        return err.data as CheckInTicketResponse;
+      }
+      throw err;
+    }
+  },
+
+  async updateListingCommission(
+    id: string,
+    payload: UpdateCommissionPayload,
+    authToken?: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    const headers: Record<string, string> = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return request<{ success: boolean; message: string; data?: any }>(`/admin/listings/${id}/commission`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getPayoutBanks(): Promise<NigerianBank[]> {
+    return request<NigerianBank[]>('/api/tickets/payment/payouts/banks');
+  },
+
+  async resolveBankAccount(accountNumber: string, bankCode: string): Promise<{ accountName: string }> {
+    const params = new URLSearchParams({ accountNumber, bankCode });
+    return request<{ accountName: string }>(`/api/tickets/payment/payouts/resolve-account?${params.toString()}`);
+  },
+
+  async createPaystackSubaccount(payload: { businessName: string; bankCode: string; accountNumber: string }): Promise<{ subaccountCode: string }> {
+    return request<{ subaccountCode: string }>('/api/tickets/payment/payouts/subaccount', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   },
 };

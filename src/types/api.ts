@@ -36,10 +36,27 @@ export interface ListingImage {
   sortOrder: number;
 }
 
+export interface TicketTier {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  totalCapacity: number;
+  soldCount: number;
+  isSoldOut?: boolean;
+}
+
 export interface EventDetails {
   startDateTime: string;
   endDateTime?: string | null;
   isRecurring?: boolean;
+  payoutBankCode?: string | null;
+  payoutAccountNumber?: string | null;
+  payoutAccountName?: string | null;
+  subaccountCode?: string | null;
+  commissionType?: 'PERCENTAGE' | 'FLAT_FEE';
+  commissionValue?: number;
+  checkInPin?: string | null;
 }
 
 export interface RestaurantDetails {
@@ -90,8 +107,103 @@ export interface ListingDetail {
   eventDetails?: EventDetails | null;
   restaurantDetails?: RestaurantDetails | null;
   facilityDetails?: FacilityDetails | null;
+  ticketTiers?: TicketTier[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AttendeeInput {
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface InitializeTicketOrderInput {
+  listingId: string;
+  tierId: string;
+  quantity: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  attendees?: AttendeeInput[];
+  callbackUrl?: string;
+}
+
+export interface InitializeTicketOrderResponse {
+  orderId: string;
+  reference: string;
+  authorizationUrl: string;
+}
+
+export interface TicketPassItem {
+  ticketCode: string;
+  tierName: string;
+  attendeeName: string;
+  attendeeEmail?: string | null;
+  attendeePhone?: string | null;
+  qrDataUrl?: string;
+}
+
+export interface VerifyTicketPaymentResponse {
+  isSuccess: boolean;
+  message: string;
+  order?: {
+    id: string;
+    reference: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    totalAmount: number;
+    status: string;
+    listing?: {
+      id: string;
+      title: string;
+      address?: string | null;
+      city?: string;
+      neighborhood?: string;
+    };
+    items?: Array<{
+      quantity: number;
+      tier?: {
+        name: string;
+        price: number;
+      };
+    }>;
+  };
+  tickets?: TicketPassItem[];
+}
+
+export interface CheckInTicketRequest {
+  tokenOrCode: string;
+  eventId?: string;
+  pin?: string;
+}
+
+export interface CheckInTicketResponse {
+  status: 'ADMITTED' | 'ALREADY_USED' | 'INVALID' | 'WRONG_EVENT' | 'INVALID_PIN';
+  message: string;
+  ticketCode?: string;
+  attendeeName?: string;
+  attendeeEmail?: string;
+  attendeePhone?: string;
+  tierName?: string;
+  eventTitle?: string;
+  checkedInAt?: string | Date;
+}
+
+export interface NigerianBank {
+  id: number;
+  name: string;
+  slug: string;
+  code: string;
+  active: boolean;
+}
+
+export interface UpdateCommissionPayload {
+  commissionType: 'PERCENTAGE' | 'FLAT_FEE';
+  commissionValue: number;
+  subaccountCode?: string | null;
+  checkInPin?: string | null;
 }
 
 export interface CountdownSliderItem {
@@ -142,6 +254,13 @@ export interface AdminLoginResponse {
   user: AdminUser;
 }
 
+export interface CreateTicketTierInput {
+  name: string;
+  price: number | string;
+  totalCapacity: number | string;
+  description?: string;
+}
+
 export interface CreateSubmissionInput {
   listingType: ListingType;
   title: string;
@@ -165,6 +284,12 @@ export interface CreateSubmissionInput {
   startDateTime?: string;
   endDateTime?: string;
   isRecurring?: boolean;
+  // Ticket Tiers (event only)
+  ticketTiers?: CreateTicketTierInput[];
+  // Payout Bank Details (event only)
+  payoutBankCode?: string;
+  payoutAccountNumber?: string;
+  payoutAccountName?: string;
   // Restaurant
   cuisineType?: string;
   priceRange?: string;
@@ -201,6 +326,10 @@ export interface CreateSubmissionPayload {
     endDateTime?: string | null;
     isRecurring?: boolean;
   };
+  ticketTiers?: CreateTicketTierInput[];
+  payoutBankCode?: string;
+  payoutAccountNumber?: string;
+  payoutAccountName?: string;
   restaurantDetails?: {
     cuisineType: string;
     priceRange?: string | null;

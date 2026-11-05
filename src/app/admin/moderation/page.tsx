@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api-client';
 import { ListingDetail, ListingStatus, ListingType } from '@/types/api';
 import { CATEGORY_CONFIG, formatEventDate, formatEventTime } from '@/lib/utils';
+import AdminCommissionSettingsCard from '@/components/admin/AdminCommissionSettingsCard';
 import {
   ShieldAlert,
   Clock,
@@ -41,6 +42,7 @@ import {
   ImageOff,
   Hash,
   Copy,
+  Camera,
 } from 'lucide-react';
 
 type ModerationTab = 'pending' | 'needs_changes' | 'approved' | 'rejected';
@@ -77,7 +79,7 @@ const TAB_CONFIG: Record<
 
 export default function ModerationPage() {
   const router = useRouter();
-  const { isAuthenticated, admin, logout } = useAuth();
+  const { isAuthenticated, admin, logout, isLoading: isAuthLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState<ModerationTab>('pending');
   const [listings, setListings] = useState<ListingDetail[]>([]);
@@ -94,6 +96,7 @@ export default function ModerationPage() {
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [commissionModalListing, setCommissionModalListing] = useState<ListingDetail | null>(null);
 
   // Action modal state
   const [actionModal, setActionModal] = useState<{
@@ -104,18 +107,20 @@ export default function ModerationPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [actionError, setActionError] = useState('');
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated once auth check has finished
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthLoading && !isAuthenticated) {
       router.push('/admin');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthLoading, isAuthenticated, router]);
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
     loadListings();
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, isAuthLoading, isAuthenticated]);
 
   async function loadListings(page = 1) {
+    if (isAuthLoading || !isAuthenticated) return;
     setIsLoading(true);
     try {
       const res = await api.getAdminListings({
@@ -128,15 +133,22 @@ export default function ModerationPage() {
       if (res.pagination) {
         setPagination(res.pagination);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load admin listings:', err);
+      if (err?.status === 401 || err?.message?.includes('token')) {
+        logout();
+        router.push('/admin');
+      }
     } finally {
       setIsLoading(false);
     }
   }
 
-  // Load tab counts
+  // Load tab counts sequentially to avoid connection spikes
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
+    let isCancelled = false;
+
     async function loadCounts() {
       const tabs: ModerationTab[] = ['pending', 'needs_changes', 'approved', 'rejected'];
       const counts: Record<ModerationTab, number> = {
@@ -145,20 +157,27 @@ export default function ModerationPage() {
         approved: 0,
         rejected: 0,
       };
-      await Promise.all(
-        tabs.map(async (tab) => {
-          try {
-            const res = await api.getAdminListings({ status: tab, limit: 1 });
-            counts[tab] = res.pagination?.total || 0;
-          } catch {
-            // ignore
-          }
-        })
-      );
-      setTabCounts(counts);
+
+      for (const tab of tabs) {
+        if (isCancelled) return;
+        try {
+          const res = await api.getAdminListings({ status: tab, limit: 1 });
+          counts[tab] = res.pagination?.total || 0;
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!isCancelled) {
+        setTabCounts(counts);
+      }
     }
+
     loadCounts();
-  }, [listings]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, isAuthLoading, isAuthenticated]);
 
   const openDrawer = async (listing: ListingDetail) => {
     setSelectedListing(listing);
@@ -234,6 +253,17 @@ export default function ModerationPage() {
       console.error('Failed to toggle featured:', err);
     }
   };
+
+  if (isAuthLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 76px)', background: 'var(--bg-main)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
+          <Loader2 className="spin" size={24} color="var(--primary)" />
+          <span>Verifying admin session...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) return null;
 
@@ -320,7 +350,24 @@ export default function ModerationPage() {
           );
         })}
 
-        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '16px', paddingTop: '16px' }}>
+        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '16px', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Link
+            href="/admin/listings"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              color: 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+            }}
+          >
+            <DollarSign size={15} color="var(--primary)" />
+            Listings & Payouts
+          </Link>
+
           <Link
             href="/admin/featured"
             style={{
@@ -336,6 +383,23 @@ export default function ModerationPage() {
           >
             <Star size={15} color="var(--accent-amber)" />
             Featured Slider
+          </Link>
+
+          <Link
+            href="/organizer/check-in"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              color: 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+            }}
+          >
+            <Camera size={15} color="#10B981" />
+            Gate QR Scanner
           </Link>
         </div>
 
@@ -469,11 +533,67 @@ export default function ModerationPage() {
                   </div>
 
                   {/* Status Indicator */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {listing.isPublished !== undefined && (
-                      <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: listing.isPublished ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)', color: listing.isPublished ? '#10B981' : 'var(--text-muted)' }}>
-                        {listing.isPublished ? 'LIVE' : 'HIDDEN'}
-                      </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        background:
+                          listing.status === 'approved'
+                            ? listing.isPublished
+                              ? 'rgba(16, 185, 129, 0.2)'
+                              : 'rgba(148, 163, 184, 0.2)'
+                            : listing.status === 'pending'
+                            ? 'rgba(245, 158, 11, 0.2)'
+                            : listing.status === 'needs_changes'
+                            ? 'rgba(6, 182, 212, 0.2)'
+                            : 'rgba(239, 68, 68, 0.2)',
+                        color:
+                          listing.status === 'approved'
+                            ? listing.isPublished
+                              ? '#10B981'
+                              : 'var(--text-muted)'
+                            : listing.status === 'pending'
+                            ? '#F59E0B'
+                            : listing.status === 'needs_changes'
+                            ? '#06B6D4'
+                            : '#EF4444',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      {listing.status === 'approved'
+                        ? listing.isPublished
+                          ? 'LIVE'
+                          : 'HIDDEN'
+                        : listing.status === 'pending'
+                        ? 'PENDING'
+                        : listing.status.replace('_', ' ')}
+                    </span>
+                    {listing.listingType === 'event' && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.8rem',
+                          borderColor: 'rgba(255, 90, 54, 0.4)',
+                          color: 'var(--primary)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCommissionModalListing(listing);
+                        }}
+                        title="Configure Paystack commission & check-in PIN"
+                      >
+                        <DollarSign size={13} />
+                        Commission & Payout
+                      </button>
                     )}
                     <button
                       className="btn btn-secondary"
@@ -1073,6 +1193,27 @@ export default function ModerationPage() {
                   </div>
                 )}
 
+                {/* Event Payout & Commission Settings */}
+                {selectedListing.listingType === 'event' && (
+                  <AdminCommissionSettingsCard
+                    key={selectedListing.id}
+                    listing={selectedListing}
+                    onUpdateSuccess={(updatedEventDetails) => {
+                      setSelectedListing((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              eventDetails: {
+                                ...prev.eventDetails,
+                                ...updatedEventDetails,
+                              },
+                            }
+                          : null
+                      );
+                    }}
+                  />
+                )}
+
                 {/* Action Modal inside Drawer */}
                 {actionModal.type && actionModal.listingId === selectedListing.id && (
                   <div
@@ -1253,6 +1394,87 @@ export default function ModerationPage() {
                 objectFit: 'contain',
                 borderRadius: '12px',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Commission & Payout Modal */}
+      {commissionModalListing && (
+        <div
+          onClick={() => setCommissionModalListing(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            overflow: 'auto',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '560px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              position: 'relative',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+              <button
+                onClick={() => setCommissionModalListing(null)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <X size={15} /> Close
+              </button>
+            </div>
+
+            <AdminCommissionSettingsCard
+              key={commissionModalListing.id}
+              listing={commissionModalListing}
+              onUpdateSuccess={(updatedDetails) => {
+                setListings((prev) =>
+                  prev.map((l) =>
+                    l.id === commissionModalListing.id
+                      ? {
+                          ...l,
+                          eventDetails: {
+                            ...l.eventDetails,
+                            ...updatedDetails,
+                          },
+                        }
+                      : l
+                  )
+                );
+                setCommissionModalListing((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        eventDetails: {
+                          ...prev.eventDetails,
+                          ...updatedDetails,
+                        },
+                      }
+                    : null
+                );
               }}
             />
           </div>

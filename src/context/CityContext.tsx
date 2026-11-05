@@ -46,8 +46,8 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         if (data && data.length > 0) {
           setCities(data);
         }
-      } catch (err) {
-        console.warn('Using fallback city list:', err);
+      } catch {
+        // Backend API unreachable or offline - seamlessly using default local cities list
       } finally {
         setIsLoadingCities(false);
       }
