@@ -386,3 +386,82 @@ export interface ResubmitSubmissionPayload {
   };
 }
 
+// ─── Organizer Auth ───────────────────────────────────────────
+export interface OrganizerLoginResponse {
+  token: string;
+  organizerEmail: string;
+}
+
+export interface OrganizerSettings {
+  notificationPreference: 'per_sale' | 'daily_digest' | 'weekly_digest';
+}
+
+// ─── Organizer Event Analytics ────────────────────────────────
+export interface OrganizerEventSummary {
+  id: string;
+  title: string;
+  status: ListingStatus;
+  thumbnailUrl: string;
+  city: string;
+  startDateTime: string | null;
+  totalRevenue: number;
+  platformFee: number;
+  organizerPayout: number;
+  totalOrders: number;
+  totalTicketsSold: number;
+  rejectionReason?: string | null;
+}
+
+export interface OrganizerTierStats {
+  id: string;
+  name: string;
+  price: number;
+  totalCapacity: number;
+  soldCount: number;
+  remaining: number;
+  revenue: number;
+}
+
+export interface OrganizerEventAnalytics {
+  listing: ListingDetail;
+  revenue: {
+    gross: number;
+    platformFee: number;
+    organizerPayout: number;
+    totalOrders: number;
+  };
+  attendance: {
+    totalTicketsIssued: number;
+    checkedIn: number;
+    checkInRate: number;
+  };
+  tiers: OrganizerTierStats[];
+  salesByDay: { date: string; orders: number; revenue: number }[];
+}
+
+// ─── Orders & Attendees ───────────────────────────────────────
+export interface OrganizerOrder {
+  id: string;
+  reference: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  totalAmount: number;
+  commission: number;
+  organizerAmount: number;
+  status: 'PAID' | 'PENDING' | 'FAILED';
+  paidAt: string | null;
+  items: { tierName: string; quantity: number; unitPrice: number; subtotal: number }[];
+}
+
+export interface OrganizerAttendee {
+  ticketCode: string;
+  tierName: string;
+  attendeeName: string;
+  attendeeEmail: string | null;
+  attendeePhone: string | null;
+  isUsed: boolean;
+  checkedInAt: string | null;
+}
+
+

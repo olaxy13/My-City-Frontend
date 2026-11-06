@@ -25,6 +25,19 @@ export function proxy(req: NextRequest) {
     }
   }
 
+  const isOrganizerSubdomain = hostname.startsWith('organizer.');
+  if (isOrganizerSubdomain) {
+    if (pathname === '/' || pathname === '/login') {
+      return NextResponse.redirect(new URL(`/organizer/login${search}`, req.url));
+    }
+    if (pathname === '/dashboard') {
+      return NextResponse.redirect(new URL(`/organizer/dashboard${search}`, req.url));
+    }
+    if (!pathname.startsWith('/organizer')) {
+      return NextResponse.redirect(new URL(`/organizer/login${search}`, req.url));
+    }
+  }
+
   return NextResponse.next();
 }
 

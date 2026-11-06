@@ -18,6 +18,12 @@ import {
   CheckInTicketResponse,
   NigerianBank,
   UpdateCommissionPayload,
+  OrganizerLoginResponse,
+  OrganizerSettings,
+  OrganizerEventSummary,
+  OrganizerEventAnalytics,
+  OrganizerOrder,
+  OrganizerAttendee,
 } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -52,6 +58,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     const token = localStorage.getItem('city_discovery_admin_token');
     if (token && !headers.has('Authorization')) {
       headers.set('Authorization', `Bearer ${token}`);
+    }
+    const orgToken = localStorage.getItem('citybuzz_organizer_token');
+    if (orgToken && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${orgToken}`);
     }
   }
 
@@ -309,6 +319,66 @@ export const api = {
   async createPaystackSubaccount(payload: { businessName: string; bankCode: string; accountNumber: string }): Promise<{ subaccountCode: string }> {
     return request<{ subaccountCode: string }>('/api/tickets/payment/payouts/subaccount', {
       method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // ─── Organizer Auth ───────────────────────────────────────────
+  async organizerRequestLink(email: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/organizer/auth/request-link', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async organizerVerifyToken(token: string): Promise<OrganizerLoginResponse> {
+    return request<OrganizerLoginResponse>(`/organizer/auth/verify?token=${encodeURIComponent(token)}`);
+  },
+
+  // ─── Organizer Events ─────────────────────────────────────────
+  async getOrganizerEvents(): Promise<OrganizerEventSummary[]> {
+    return request<OrganizerEventSummary[]>('/organizer/events');
+  },
+
+  async getOrganizerEventAnalytics(id: string): Promise<OrganizerEventAnalytics> {
+    return request<OrganizerEventAnalytics>(`/organizer/events/${id}`);
+  },
+
+  async getOrganizerOrders(
+    id: string,
+    params: { page?: number; limit?: number } = {}
+  ): Promise<PaginatedResponse<OrganizerOrder>> {
+    const q = new URLSearchParams();
+    if (params.page) q.set('page', String(params.page));
+    if (params.limit) q.set('limit', String(params.limit));
+    return request<PaginatedResponse<OrganizerOrder>>(`/organizer/events/${id}/orders?${q}`);
+  },
+
+  async getOrganizerAttendees(id: string): Promise<OrganizerAttendee[]> {
+    return request<OrganizerAttendee[]>(`/organizer/events/${id}/attendees`);
+  },
+
+  getOrganizerAttendeesExportUrl(id: string): string {
+    return `${API_BASE_URL}/organizer/events/${id}/attendees/export`;
+  },
+
+  async getOrganizerSettings(): Promise<OrganizerSettings> {
+    return request<OrganizerSettings>('/organizer/settings');
+  },
+
+  async updateOrganizerSettings(prefs: OrganizerSettings): Promise<OrganizerSettings> {
+    return request<OrganizerSettings>('/organizer/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(prefs),
+    });
+  },
+
+  async updateOrganizerListing(
+    id: string,
+    payload: Partial<ResubmitSubmissionPayload>
+  ): Promise<{ success: boolean; message: string; requiresReview: boolean }> {
+    return request(`/organizer/events/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(payload),
     });
   },
