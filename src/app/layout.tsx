@@ -70,6 +70,14 @@ export default function RootLayout({
                   var reason = String(e?.reason?.message || e?.reason || '');
                   var stack = String(e?.reason?.stack || '');
                   if (
+                    reason.indexOf('ChunkLoadError') !== -1 ||
+                    reason.indexOf('Loading chunk') !== -1 ||
+                    reason.indexOf('Failed to fetch dynamically imported module') !== -1
+                  ) {
+                    window.location.reload();
+                    return;
+                  }
+                  if (
                     reason.indexOf('MetaMask') !== -1 ||
                     stack.indexOf('chrome-extension://') !== -1 ||
                     reason.indexOf('extension not found') !== -1
@@ -81,6 +89,14 @@ export default function RootLayout({
                 window.addEventListener('error', function(e) {
                   var msg = String(e?.message || '');
                   var file = String(e?.filename || '');
+                  if (
+                    msg.indexOf('ChunkLoadError') !== -1 ||
+                    msg.indexOf('Loading chunk') !== -1 ||
+                    msg.indexOf('Failed to fetch dynamically imported module') !== -1
+                  ) {
+                    window.location.reload();
+                    return;
+                  }
                   if (
                     msg.indexOf('MetaMask') !== -1 ||
                     file.indexOf('chrome-extension://') !== -1 ||

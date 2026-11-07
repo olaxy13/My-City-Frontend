@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { api } from '@/lib/api-client';
 import { ListingDetail, CheckInTicketResponse } from '@/types/api';
 import {
@@ -108,7 +107,7 @@ function GateScannerContent() {
   const [scanResult, setScanResult] = useState<CheckInTicketResponse | null>(null);
   const [feedbackFlash, setFeedbackFlash] = useState<'green' | 'red' | 'amber' | null>(null);
 
-  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const html5QrCodeRef = useRef<any>(null);
   const autoResumeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Read saved event & PIN from sessionStorage on mount
@@ -287,6 +286,8 @@ function GateScannerContent() {
 
     try {
       await safeStopScanner();
+
+      const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
 
       const scanner = new Html5Qrcode(scannerElementId, {
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
