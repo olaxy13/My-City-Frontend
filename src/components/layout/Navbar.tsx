@@ -26,10 +26,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  if (pathname?.startsWith('/admin') || pathname?.startsWith('/organizer')) {
-    return null;
-  }
-
   const { theme, toggleTheme } = useTheme();
   const { currentCity, setCurrentCity, cities } = useCity();
   const { isAuthenticated, admin, logout } = useAuth();
@@ -62,6 +58,10 @@ export default function Navbar() {
       setIsMobileMenuOpen(false);
     }
   };
+
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/organizer')) {
+    return null;
+  }
 
   return (
     <header className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
