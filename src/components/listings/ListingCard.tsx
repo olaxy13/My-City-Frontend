@@ -142,7 +142,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
               alignItems: 'center',
               gap: '6px',
               color: 'var(--primary)',
-              fontSize: '0.8rem',
+              fontSize: 'var(--text-sm)',
               fontWeight: 700,
               marginBottom: '6px',
             }}
@@ -154,7 +154,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           </div>
 
           {/* Title */}
-          <h3 style={{ fontSize: '1.15rem', lineHeight: 1.3, marginBottom: '8px' }}>
+          <h3 style={{ fontSize: 'var(--text-lg)', lineHeight: 1.3, marginBottom: '8px' }}>
             <Link href={`/listings/${listing.id}`} className="hover-link">
               {listing.title}
             </Link>
@@ -163,7 +163,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           {/* Description Snippet */}
           <p
             style={{
-              fontSize: '0.86rem',
+              fontSize: 'var(--text-sm)',
               color: 'var(--text-secondary)',
               lineHeight: 1.5,
               marginBottom: '16px',
@@ -177,7 +177,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           </p>
 
           {/* Type-Specific Highlights */}
-          <div style={{ marginBottom: '16px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
             {isEvent && listing.eventDetails && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
                 <Calendar size={14} color="var(--primary)" />
@@ -224,7 +224,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-whatsapp"
-              style={{ fontSize: '0.82rem', padding: '8px 10px' }}
+              style={{ fontSize: 'var(--text-sm)', padding: '8px 10px' }}
             >
               <MessageCircle size={15} />
               <span>WhatsApp</span>
@@ -234,7 +234,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           <Link
             href={`/listings/${listing.id}`}
             className="btn btn-secondary"
-            style={{ fontSize: '0.82rem', padding: '8px 10px' }}
+            style={{ fontSize: 'var(--text-sm)', padding: '8px 10px' }}
           >
             <span>View Details</span>
             <ExternalLink size={13} />

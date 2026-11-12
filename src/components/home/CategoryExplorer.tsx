@@ -43,12 +43,12 @@ export default function CategoryExplorer({ categories = [], selectedCategory, on
     <div style={{ margin: '40px 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
         <div>
-          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
             Curated Categories
           </div>
-          <h2 style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>What are you looking for today?</h2>
+          <h2 style={{ fontSize: 'var(--text-xl)', lineHeight: 1.2 }}>What are you looking for today?</h2>
         </div>
-        <Link href="/explore" style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 700 }}>
+        <Link href="/explore" style={{ fontSize: 'var(--text-base)', color: 'var(--primary)', fontWeight: 700 }}>
           View All →
         </Link>
       </div>
@@ -91,7 +91,7 @@ export default function CategoryExplorer({ categories = [], selectedCategory, on
                 style={{
                   width: '48px',
                   height: '48px',
-                  borderRadius: '14px',
+                  borderRadius: 'var(--radius-md)',
                   background: config.bgGradient,
                   display: 'flex',
                   alignItems: 'center',
@@ -104,10 +104,10 @@ export default function CategoryExplorer({ categories = [], selectedCategory, on
               </div>
 
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '2px' }}>
+                <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)', marginBottom: '2px' }}>
                   {config.label}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 600 }}>
                   {cat.listingCount} {cat.listingCount === 1 ? 'place' : 'places'}
                 </div>
               </div>

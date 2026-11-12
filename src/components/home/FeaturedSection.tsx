@@ -34,10 +34,10 @@ export default function FeaturedSection({ listings = [], city }: FeaturedSection
         }}
       >
         <div>
-          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
             Handpicked & Verified
           </div>
-          <h2 style={{ fontSize: '1.85rem' }}>Trending in {city}</h2>
+          <h2 style={{ fontSize: 'var(--text-xl)' }}>Trending in {city}</h2>
         </div>
 
         {/* Tab Pills */}
@@ -102,7 +102,7 @@ export default function FeaturedSection({ listings = [], city }: FeaturedSection
 
       {/* Bottom CTA to Explore */}
       <div style={{ textAlign: 'center', marginTop: '40px' }}>
-        <Link href="/explore" className="btn btn-secondary" style={{ padding: '12px 30px', fontSize: '1rem' }}>
+        <Link href="/explore" className="btn btn-secondary" style={{ padding: '12px 30px', fontSize: 'var(--text-md)' }}>
           <span>View All {city} Discoveries</span>
           <Sparkles size={16} color="var(--primary)" />
         </Link>

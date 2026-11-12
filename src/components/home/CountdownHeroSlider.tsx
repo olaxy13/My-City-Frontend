@@ -64,13 +64,13 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
           justifyContent: 'center',
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: '24px',
+          borderRadius: 'var(--radius-xl)',
           background: 'var(--bg-secondary)',
         }}
       >
         <div style={{ textAlign: 'center', padding: '24px' }}>
           <Sparkles size={36} color="var(--primary)" className="glow-animation" style={{ marginBottom: '12px' }} />
-          <div style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-md)', fontWeight: 600 }}>
             Curating upcoming {currentCity || 'city'} events...
           </div>
         </div>
@@ -85,12 +85,12 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         style={{
           padding: '60px 20px',
           textAlign: 'center',
-          borderRadius: '24px',
+          borderRadius: 'var(--radius-xl)',
           background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.08), rgba(245, 158, 11, 0.04))',
         }}
       >
         <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '16px' }} />
-        <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>No Upcoming Events Right Now</h2>
+        <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '8px' }}>No Upcoming Events Right Now</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
           Be the first to host or promote an exciting event in {currentCity || 'Lagos'}!
         </p>
@@ -127,7 +127,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         position: 'relative',
         width: '100%',
         minHeight: '480px',
-        borderRadius: '24px',
+        borderRadius: 'var(--radius-xl)',
         overflow: 'hidden',
         boxShadow: 'var(--hero-shadow)',
       }}
@@ -199,8 +199,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 14px',
-                borderRadius: '100px',
-                fontSize: '0.8rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--text-sm)',
                 fontWeight: 700,
                 color: '#ffffff',
                 background: catConfig.bgGradient,
@@ -219,8 +219,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
                 alignItems: 'center',
                 gap: '4px',
                 padding: '6px 12px',
-                borderRadius: '100px',
-                fontSize: '0.8rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 'var(--text-sm)',
                 fontWeight: 600,
                 color: 'rgba(255, 255, 255, 0.85)',
                 background: 'rgba(255, 255, 255, 0.12)',
@@ -235,12 +235,12 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
           {/* Slide Progress Counter */}
           <div
             style={{
-              fontSize: '0.82rem',
+              fontSize: 'var(--text-sm)',
               fontWeight: 700,
               color: 'rgba(255, 255, 255, 0.75)',
               background: 'rgba(0,0,0,0.4)',
               padding: '4px 12px',
-              borderRadius: '20px',
+              borderRadius: 'var(--radius-lg)',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -256,7 +256,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
               alignItems: 'center',
               gap: '6px',
               color: 'var(--accent-amber)',
-              fontSize: '0.9rem',
+              fontSize: 'var(--text-base)',
               fontWeight: 700,
               marginBottom: '10px',
             }}
@@ -285,14 +285,14 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
               background: 'rgba(10, 13, 20, 0.7)',
               backdropFilter: 'blur(16px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '16px',
+              borderRadius: 'var(--radius-lg)',
               padding: '16px 20px',
               display: 'inline-block',
               maxWidth: '100%',
               boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               <Zap size={12} />
               Live Countdown to Event
             </div>
@@ -318,7 +318,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
-                style={{ padding: '10px 20px', fontSize: '0.95rem' }}
+                style={{ padding: '10px 20px', fontSize: 'var(--text-base)' }}
               >
                 <Ticket size={16} />
                 <span>Get Tickets / Register</span>

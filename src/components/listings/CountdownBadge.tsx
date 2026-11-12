@@ -47,7 +47,7 @@ export default function CountdownBadge({ targetDate, size = 'md', compact = fals
           background: 'rgba(0, 0, 0, 0.65)',
           color: '#F59E0B',
           borderColor: 'rgba(245, 158, 11, 0.4)',
-          fontSize: '0.78rem',
+          fontSize: 'var(--text-xs)',
           backdropFilter: 'blur(8px)',
         }}
       >
@@ -66,17 +66,17 @@ export default function CountdownBadge({ targetDate, size = 'md', compact = fals
         <div className="val" style={{ fontSize: size === 'lg' ? '1.5rem' : '1.15rem' }}>{pad(time.days)}</div>
         <div className="lbl" style={{ fontSize: size === 'lg' ? '0.65rem' : '0.55rem' }}>DAYS</div>
       </div>
-      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: '1.2rem' }}>:</span>
+      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: 'var(--text-lg)' }}>:</span>
       <div className="countdown-box" style={{ minWidth: size === 'lg' ? '65px' : '48px', padding: size === 'lg' ? '8px 12px' : '6px 8px' }}>
         <div className="val" style={{ fontSize: size === 'lg' ? '1.5rem' : '1.15rem' }}>{pad(time.hours)}</div>
         <div className="lbl" style={{ fontSize: size === 'lg' ? '0.65rem' : '0.55rem' }}>HOURS</div>
       </div>
-      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: '1.2rem' }}>:</span>
+      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: 'var(--text-lg)' }}>:</span>
       <div className="countdown-box" style={{ minWidth: size === 'lg' ? '65px' : '48px', padding: size === 'lg' ? '8px 12px' : '6px 8px' }}>
         <div className="val" style={{ fontSize: size === 'lg' ? '1.5rem' : '1.15rem' }}>{pad(time.minutes)}</div>
         <div className="lbl" style={{ fontSize: size === 'lg' ? '0.65rem' : '0.55rem' }}>MINS</div>
       </div>
-      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: '1.2rem' }}>:</span>
+      <span style={{ fontWeight: 800, color: 'rgba(255,255,255,0.4)', fontSize: 'var(--text-lg)' }}>:</span>
       <div className="countdown-box" style={{ minWidth: size === 'lg' ? '65px' : '48px', padding: size === 'lg' ? '8px 12px' : '6px 8px' }}>
         <div className="val" style={{ fontSize: size === 'lg' ? '1.5rem' : '1.15rem', color: '#FF5A36' }}>{pad(time.seconds)}</div>
         <div className="lbl" style={{ fontSize: size === 'lg' ? '0.65rem' : '0.55rem' }}>SECS</div>

@@ -76,7 +76,7 @@ export default function HomePage() {
             style={{
               width: '42px',
               height: '42px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-md)',
               background: 'rgba(255, 90, 54, 0.15)',
               display: 'flex',
               alignItems: 'center',
@@ -87,10 +87,10 @@ export default function HomePage() {
             <Zap size={22} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
               100% Free Submissions
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Zero commission or ticket markups
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function HomePage() {
             style={{
               width: '42px',
               height: '42px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-md)',
               background: 'rgba(16, 185, 129, 0.15)',
               display: 'flex',
               alignItems: 'center',
@@ -120,10 +120,10 @@ export default function HomePage() {
             <ShieldCheck size={22} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
               Verified Business Badges
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Strict CAC & license moderation
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function HomePage() {
             style={{
               width: '42px',
               height: '42px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-md)',
               background: 'rgba(245, 158, 11, 0.15)',
               display: 'flex',
               alignItems: 'center',
@@ -153,10 +153,10 @@ export default function HomePage() {
             <Clock size={22} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
               Real-time Event Countdown
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
               Never miss what is happening next
             </div>
           </div>
@@ -175,7 +175,7 @@ export default function HomePage() {
         style={{
           marginTop: '60px',
           padding: '40px',
-          borderRadius: '24px',
+          borderRadius: 'var(--radius-xl)',
           background:
             'linear-gradient(135deg, rgba(255, 90, 54, 0.15) 0%, rgba(245, 158, 11, 0.1) 50%, rgba(139, 92, 246, 0.1) 100%)',
           display: 'flex',
@@ -193,7 +193,7 @@ export default function HomePage() {
           <h2 style={{ fontSize: 'clamp(1.35rem, 4vw, 2rem)', marginBottom: '10px' }}>
             Are you hosting an event or running a business in {currentCity}?
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)', lineHeight: 1.6 }}>
             Gain organic visibility from city locals and visitors searching for experiences. Free submission, direct WhatsApp inquiries, and fast 24-hour admin review.
           </p>
         </div>
@@ -201,7 +201,7 @@ export default function HomePage() {
         <Link
           href="/submit"
           className="btn btn-primary"
-          style={{ padding: '14px 28px', fontSize: '1.05rem', width: '100%', maxWidth: '360px', justifyContent: 'center' }}
+          style={{ padding: '14px 28px', fontSize: 'var(--text-md)', width: '100%', maxWidth: '360px', justifyContent: 'center' }}
         >
           <PlusCircle size={20} />
           <span>Submit Your Listing For Free</span>
@@ -214,11 +214,11 @@ export default function HomePage() {
           .callout-banner {
             padding: 24px 20px !important;
             margin-top: 40px !important;
-            border-radius: 18px !important;
+            border-radius: var(--radius-lg) !important;
           }
           .callout-banner .btn {
             max-width: 100% !important;
-            font-size: 0.95rem !important;
+            font-size: var(--text-base) !important;
           }
         }
       `}</style>
