@@ -7,6 +7,7 @@ import { CATEGORY_CONFIG, formatEventDate, formatEventTime } from '@/lib/utils';
 import CountdownBadge from '../listings/CountdownBadge';
 import AddToCalendarMenu from '../listings/AddToCalendarMenu';
 import { useCity } from '@/context/CityContext';
+import { EmptyStateFrame, EMPTY_STATE_MIN_HEIGHT, HeroSliderSkeleton } from '@/components/ui/Skeletons';
 import {
   ChevronLeft,
   ChevronRight,
@@ -16,7 +17,41 @@ import {
   Sparkles,
   Ticket,
   Zap,
+  Plus,
+  Music,
 } from 'lucide-react';
+
+/** Decorative layers behind the "no events" card: an edge dot grid and faint event icons. */
+function EmptyHeroBackdrop() {
+  const ghost = (rotate: number): React.CSSProperties => ({
+    position: 'absolute',
+    width: 'clamp(56px, 9vw, 112px)',
+    height: 'clamp(56px, 9vw, 112px)',
+    color: 'var(--primary)',
+    opacity: 0.1,
+    transform: `rotate(${rotate}deg)`,
+  });
+
+  return (
+    <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none' }}>
+      {/* Dot grid that fades out toward the centre so the text stays clear */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'radial-gradient(rgba(255, 90, 54, 0.3) 1.2px, transparent 1.6px)',
+          backgroundSize: '22px 22px',
+          maskImage: 'radial-gradient(ellipse 60% 70% at 50% 50%, transparent 35%, #000 85%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 60% 70% at 50% 50%, transparent 35%, #000 85%)',
+        }}
+      />
+      <Ticket style={{ ...ghost(-14), top: '10%', left: '6%' }} />
+      <Calendar style={{ ...ghost(12), top: '12%', right: '7%' }} />
+      <MapPin style={{ ...ghost(-8), bottom: '10%', left: '10%' }} />
+      <Music style={{ ...ghost(10), bottom: '12%', right: '9%' }} />
+    </div>
+  );
+}
 
 interface CountdownHeroSliderProps {
   items?: CountdownSliderItem[];
@@ -53,51 +88,54 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
   }, [currentIndex, total]);
 
   if (isLoading) {
-    return (
-      <div
-        className="glass-card-static"
-        style={{
-          minHeight: '420px',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: 'var(--radius-xl)',
-          background: 'var(--bg-secondary)',
-        }}
-      >
-        <div style={{ textAlign: 'center', padding: '24px' }}>
-          <Sparkles size={36} color="var(--primary)" className="glow-animation" style={{ marginBottom: '12px' }} />
-          <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-md)', fontWeight: 600 }}>
-            Curating upcoming {currentCity || 'city'} events...
-          </div>
-        </div>
-      </div>
-    );
+    return <HeroSliderSkeleton />;
   }
 
   if (total === 0) {
     return (
-      <div
-        className="glass-card-static"
+      <EmptyStateFrame
+        minHeight={EMPTY_STATE_MIN_HEIGHT.hero}
         style={{
-          padding: '60px 20px',
-          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          isolation: 'isolate',
           borderRadius: 'var(--radius-xl)',
-          background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.08), rgba(245, 158, 11, 0.04))',
+          background: [
+            'radial-gradient(60% 85% at 12% 8%, rgba(255, 90, 54, 0.22), transparent 62%)',
+            'radial-gradient(55% 80% at 92% 96%, rgba(245, 158, 11, 0.2), transparent 62%)',
+            'radial-gradient(35% 55% at 88% 6%, rgba(236, 72, 153, 0.1), transparent 70%)',
+            'var(--bg-secondary)',
+          ].join(', '),
         }}
       >
-        <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '16px' }} />
+        <EmptyHeroBackdrop />
+
+        <div
+          className="glow-animation"
+          style={{
+            width: 76,
+            height: 76,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            color: '#fff',
+            background: 'linear-gradient(135deg, var(--primary), var(--accent-amber))',
+            boxShadow: '0 0 0 8px rgba(255, 90, 54, 0.12), 0 12px 32px rgba(255, 90, 54, 0.35)',
+          }}
+        >
+          <Sparkles size={34} aria-hidden />
+        </div>
         <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '8px' }}>No Upcoming Events Right Now</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: 420 }}>
           Be the first to host or promote an exciting event in {currentCity || 'Lagos'}!
         </p>
         <Link href="/submit" className="btn btn-primary">
-          + Submit Event Listing
+          <Plus size={16} aria-hidden />
+          <span>Submit Event Listing</span>
         </Link>
-      </div>
+      </EmptyStateFrame>
     );
   }
 
