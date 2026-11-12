@@ -6,14 +6,14 @@ import { api } from '@/lib/api-client';
 import { Category, CountdownSliderItem, ListingDetail } from '@/types/api';
 import HomeHero from '@/components/home/HomeHero';
 import OrganizerBanner from '@/components/home/OrganizerBanner';
-import FeaturedSection, { ROW_SIZE, type ListingRowsData } from '@/components/home/FeaturedSection';
+import FeaturedSection, { GRID_SIZE } from '@/components/home/FeaturedSection';
 
 export default function HomePage() {
   const { currentCity } = useCity();
 
   const [countdownItems, setCountdownItems] = useState<CountdownSliderItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [listingRows, setListingRows] = useState<ListingRowsData>({ events: [], restaurants: [], facilities: [] });
+  const [featuredListings, setFeaturedListings] = useState<ListingDetail[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const requestIdRef = useRef(0);
 
@@ -23,40 +23,17 @@ export default function HomePage() {
 
     async function loadHomeData() {
       try {
-        // Local YYYY-MM-DD, so the events row only shows today onwards
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-        const HERO_EVENTS = 8;
-
-        const listingsOfType = (type: string, extra: { startDate?: string; limit?: number } = {}) =>
-          api
-            .getListings({ city: currentCity, type, limit: ROW_SIZE, ...extra })
-            .then((res) => (Array.isArray(res?.data) ? res.data : []))
-            .catch((): ListingDetail[] => []);
-
-        const [sliderRes, catsRes, events, restaurants, facilities] = await Promise.all([
-          api.getUpcomingCountdown(currentCity, HERO_EVENTS).catch(() => []),
+        const [sliderRes, catsRes, listingsRes] = await Promise.all([
+          api.getUpcomingCountdown(currentCity, 8).catch(() => []),
           api.getCategories().catch(() => []),
-          // Over-fetch so the row still fills after removing the hero's events
-          listingsOfType('event', { startDate: today, limit: ROW_SIZE + HERO_EVENTS }),
-          listingsOfType('restaurant'),
-          listingsOfType('facility'),
+          api.getListings({ city: currentCity, limit: GRID_SIZE }).catch(() => ({ data: [] })),
         ]);
 
         if (requestId !== requestIdRef.current) return;
 
-        const heroEvents = Array.isArray(sliderRes) ? sliderRes : [];
-        const inHero = new Set(heroEvents.map((e) => e.id));
-
-        setCountdownItems(heroEvents);
+        setCountdownItems(Array.isArray(sliderRes) ? sliderRes : []);
         setCategories(Array.isArray(catsRes) ? catsRes : []);
-        setListingRows({
-          // The hero already shows these; the row only adds other upcoming events
-          events: events.filter((e) => !inHero.has(e.id)).slice(0, ROW_SIZE),
-          restaurants,
-          facilities,
-        });
+        setFeaturedListings(Array.isArray(listingsRes?.data) ? listingsRes.data : []);
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {
@@ -71,11 +48,17 @@ export default function HomePage() {
 
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
-      {/* 1. Hero: search, date shortcuts, next events and categories */}
-      <HomeHero items={countdownItems} categories={categories} isLoading={isLoading} />
+      {/* 1. Hero: search, date shortcuts and the next events */}
+      <HomeHero items={countdownItems} isLoading={isLoading} />
 
-      {/* 2. Listings, one row per intent */}
-      <FeaturedSection rows={listingRows} city={currentCity} isLoading={isLoading} />
+      {/* 2. Trending grid, filtered by category chips (keyed so the filter resets per city) */}
+      <FeaturedSection
+        key={currentCity}
+        listings={featuredListings}
+        categories={categories}
+        city={currentCity}
+        isLoading={isLoading}
+      />
 
       {/* 3. The one section for organizers and businesses */}
       <OrganizerBanner city={currentCity} />

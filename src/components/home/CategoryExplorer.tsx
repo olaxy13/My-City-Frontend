@@ -1,15 +1,14 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { Category } from '@/types/api';
 import { CATEGORY_CONFIG } from '@/lib/utils';
 import { CategoryGridSkeleton } from '@/components/ui/Skeletons';
 import {
-  ArrowRight,
   Compass,
   GraduationCap,
   HeartPulse,
+  LayoutGrid,
   Music,
   Palette,
   Sparkles,
@@ -35,96 +34,68 @@ const ICONS: Record<string, LucideIcon> = {
 
 interface CategoryExplorerProps {
   categories: Category[];
+  /** Selected category slug, or null for "All". */
+  selected: string | null;
+  onSelect: (slug: string | null) => void;
   isLoading?: boolean;
 }
 
-/**
- * The hero's bottom strip: a small label and one line of category chips
- * that scrolls sideways, each linking to Explore filtered by category.
- */
-export default function CategoryExplorer({ categories = [], isLoading = false }: CategoryExplorerProps) {
+/** One scrolling line of category chips used to filter the Trending grid. */
+export default function CategoryExplorer({ categories = [], selected, onSelect, isLoading = false }: CategoryExplorerProps) {
   const safeCategories = Array.isArray(categories) ? categories : [];
 
-  return (
-    <nav aria-labelledby="browse-categories" style={{ minWidth: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '12px',
-        }}
-      >
-        <h2
-          id="browse-categories"
-          style={{
-            fontSize: 'var(--text-sm)',
-            fontWeight: 700,
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.02em',
-          }}
-        >
-          Browse by category
-        </h2>
-        <Link
-          href="/explore"
-          className="hover-link"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            flexShrink: 0,
-            fontSize: 'var(--text-sm)',
-            fontWeight: 700,
-          }}
-        >
-          Explore all <ArrowRight size={15} aria-hidden />
-        </Link>
-      </div>
+  if (isLoading) return <CategoryGridSkeleton />;
 
-      {isLoading ? (
-        <CategoryGridSkeleton />
-      ) : (
-        <ul className="chip-row chip-row--scroll" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {safeCategories.map((cat) => {
-            const config = CATEGORY_CONFIG[cat.slug];
-            const Icon = (config && ICONS[config.iconName]) || Compass;
-            const label = config?.label || cat.name;
-            return (
-              <li key={cat.slug}>
-                <Link
-                  href={`/explore?category=${cat.slug}`}
-                  className="hero-chip"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 15px',
-                    borderRadius: 'var(--radius-full)',
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    textDecoration: 'none',
-                  }}
-                >
-                  <Icon size={16} color="var(--primary)" aria-hidden />
-                  <span>{label}</span>
-                  {cat.listingCount > 0 && (
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                      {cat.listingCount}
-                      <span className="sr-only"> {cat.listingCount === 1 ? 'place' : 'places'}</span>
-                    </span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </nav>
+  const chips = [
+    { slug: null as string | null, label: 'All', Icon: LayoutGrid, count: 0 },
+    ...safeCategories.map((cat) => {
+      const config = CATEGORY_CONFIG[cat.slug];
+      return {
+        slug: cat.slug as string | null,
+        label: config?.label || cat.name,
+        Icon: (config && ICONS[config.iconName]) || Compass,
+        count: cat.listingCount,
+      };
+    }),
+  ];
+
+  return (
+    <div role="group" aria-label="Filter by category" className="chip-row chip-row--scroll">
+      {chips.map(({ slug, label, Icon, count }) => {
+        const active = selected === slug;
+        return (
+          <button
+            key={slug ?? 'all'}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onSelect(slug)}
+            className="hero-chip"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 15px',
+              borderRadius: 'var(--radius-full)',
+              background: active ? 'rgba(255, 90, 54, 0.15)' : 'var(--bg-card)',
+              border: `1px solid ${active ? 'var(--primary)' : 'var(--border-color)'}`,
+              color: 'var(--text-primary)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+            }}
+          >
+            <Icon size={16} color="var(--primary)" aria-hidden />
+            <span>{label}</span>
+            {count > 0 && (
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                {count}
+                <span className="sr-only"> {count === 1 ? 'place' : 'places'}</span>
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }

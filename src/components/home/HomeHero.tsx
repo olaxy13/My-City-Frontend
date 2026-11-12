@@ -4,10 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Calendar, CalendarDays, CalendarRange, Search, type LucideIcon } from 'lucide-react';
-import type { Category, CountdownSliderItem } from '@/types/api';
+import type { CountdownSliderItem } from '@/types/api';
 import { useCity } from '@/context/CityContext';
 import CountdownHeroSlider from './CountdownHeroSlider';
-import CategoryExplorer from './CategoryExplorer';
 
 /** Date shortcuts into Explore. Food and facilities have their own rows further down. */
 const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
@@ -18,11 +17,10 @@ const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
 
 interface HomeHeroProps {
   items: CountdownSliderItem[];
-  categories: Category[];
   isLoading: boolean;
 }
 
-export default function HomeHero({ items, categories, isLoading }: HomeHeroProps) {
+export default function HomeHero({ items, isLoading }: HomeHeroProps) {
   const { currentCity } = useCity();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -148,18 +146,6 @@ export default function HomeHero({ items, categories, isLoading }: HomeHeroProps
       {/* Next big event */}
       <div style={{ minWidth: 0 }}>
         <CountdownHeroSlider items={items} isLoading={isLoading} />
-      </div>
-
-      {/* Bottom strip, full width: categories */}
-      <div
-        style={{
-          gridColumn: '1 / -1',
-          minWidth: 0,
-          paddingTop: 'clamp(18px, 2.5vw, 24px)',
-          borderTop: '1px solid var(--border-color)',
-        }}
-      >
-        <CategoryExplorer categories={categories} isLoading={isLoading} />
       </div>
     </section>
   );

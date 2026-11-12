@@ -1,135 +1,107 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { ListingDetail } from '@/types/api';
+import { Category, ListingDetail } from '@/types/api';
+import { api } from '@/lib/api-client';
+import { CATEGORY_CONFIG } from '@/lib/utils';
 import ListingCard from '../listings/ListingCard';
-import { EmptyStateFrame, ListingCardSkeleton } from '@/components/ui/Skeletons';
-import { ArrowRight, Plus } from 'lucide-react';
+import CategoryExplorer from './CategoryExplorer';
+import { EmptyStateFrame, ListingGridSkeleton } from '@/components/ui/Skeletons';
+import { ArrowRight } from 'lucide-react';
 
-export interface ListingRowsData {
-  events: ListingDetail[];
-  restaurants: ListingDetail[];
-  facilities: ListingDetail[];
-}
+/** Cards shown in the grid; Explore has the rest. */
+export const GRID_SIZE = 9;
 
 interface FeaturedSectionProps {
-  rows: ListingRowsData;
+  listings: ListingDetail[];
+  categories: Category[];
   city: string;
   isLoading?: boolean;
 }
 
-/** Cards shown per row; the rest are a "See all" away. */
-export const ROW_SIZE = 3;
-
 /**
- * The home page's listings, one row per intent (events, food, essential
- * places), each linking to Explore filtered to that type.
+ * "Trending in {city}": one grid of listings with category chips above it.
+ * "All" shows the home page's listings; a category loads that category's.
  */
-export default function FeaturedSection({ rows, city, isLoading = false }: FeaturedSectionProps) {
-  const sections = [
-    {
-      key: 'events',
-      title: 'Events coming up',
-      subtitle: `Concerts, parties, sports and more in ${city}`,
-      href: '/explore?type=event',
-      items: rows.events,
-    },
-    {
-      key: 'restaurants',
-      title: 'Places to eat',
-      subtitle: 'Restaurants, cafés and lounges worth the trip',
-      href: '/explore?type=restaurant',
-      items: rows.restaurants,
-    },
-    {
-      key: 'facilities',
-      title: 'Essential places',
-      subtitle: 'Hospitals, hubs and services you can rely on',
-      href: '/explore?type=facility',
-      items: rows.facilities,
-    },
-  ];
+export default function FeaturedSection({ listings = [], categories, city, isLoading = false }: FeaturedSectionProps) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [filtered, setFiltered] = useState<ListingDetail[]>([]);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const cache = useRef(new Map<string, ListingDetail[]>());
+  const latest = useRef(0);
 
-  if (isLoading) {
-    return (
-      <div role="status" aria-busy="true" aria-label="Loading listings">
-        <span className="sr-only">Loading listings</span>
-        {sections.map((s) => (
-          <section key={s.key} style={{ margin: '48px 0' }} aria-hidden>
-            <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '20px' }}>{s.title}</h2>
-            <div className="listing-row">
-              {Array.from({ length: ROW_SIZE }).map((_, i) => (
-                <ListingCardSkeleton key={i} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    );
-  }
+  const select = async (slug: string | null) => {
+    setSelected(slug);
+    if (!slug) return;
 
-  const visible = sections.filter((s) => s.items.length > 0);
+    const cached = cache.current.get(slug);
+    if (cached) {
+      setFiltered(cached);
+      return;
+    }
 
-  if (visible.length === 0) {
-    return (
-      <EmptyStateFrame minHeight={320} style={{ margin: '48px 0', borderRadius: 'var(--radius-xl)' }}>
-        <h2 style={{ fontSize: 'var(--text-lg)', marginBottom: '6px' }}>Nothing listed in {city} yet</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '18px' }}>
-          Know a great event, restaurant or service? Add it for free.
-        </p>
-        <Link href="/submit" className="btn btn-primary">
-          <Plus size={16} aria-hidden />
-          <span>Submit a listing</span>
-        </Link>
-      </EmptyStateFrame>
-    );
-  }
+    const request = ++latest.current;
+    setIsFiltering(true);
+    try {
+      const res = await api.getListings({ city, category: slug, limit: GRID_SIZE });
+      const data = Array.isArray(res?.data) ? res.data : [];
+      cache.current.set(slug, data);
+      if (request === latest.current) setFiltered(data);
+    } catch {
+      if (request === latest.current) setFiltered([]);
+    } finally {
+      if (request === latest.current) setIsFiltering(false);
+    }
+  };
+
+  const shown = (selected ? filtered : listings).slice(0, GRID_SIZE);
+  const selectedLabel = selected ? CATEGORY_CONFIG[selected as keyof typeof CATEGORY_CONFIG]?.label || selected : '';
+  const exploreHref = selected ? `/explore?category=${selected}` : '/explore';
 
   return (
-    <>
-      {visible.map((s) => (
-        <section key={s.key} aria-labelledby={`row-${s.key}`} style={{ margin: '48px 0' }}>
+    <section aria-labelledby="trending-title" style={{ margin: '48px 0' }}>
+      <h2 id="trending-title" style={{ fontSize: 'var(--text-xl)', lineHeight: 1.2, marginBottom: '16px' }}>
+        Trending in {city}
+      </h2>
+
+      <div style={{ marginBottom: '24px' }}>
+        <CategoryExplorer categories={categories} selected={selected} onSelect={select} isLoading={isLoading} />
+      </div>
+
+      <div aria-live="polite" aria-busy={isLoading || isFiltering}>
+        {isLoading || isFiltering ? (
+          <ListingGridSkeleton count={6} />
+        ) : shown.length === 0 ? (
+          <EmptyStateFrame minHeight={260} style={{ borderRadius: 'var(--radius-xl)' }}>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              {selected ? `Nothing in ${selectedLabel} in ${city} yet.` : `Nothing listed in ${city} yet.`}
+            </p>
+            <Link href="/submit" className="btn btn-secondary">
+              Add one for free
+            </Link>
+          </EmptyStateFrame>
+        ) : (
           <div
             style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              gap: '16px',
-              marginBottom: '20px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: '24px',
             }}
           >
-            <div style={{ minWidth: 0 }}>
-              <h2 id={`row-${s.key}`} style={{ fontSize: 'var(--text-xl)', lineHeight: 1.2 }}>
-                {s.title}
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginTop: '4px' }}>
-                {s.subtitle}
-              </p>
-            </div>
-            <Link
-              href={s.href}
-              className="hover-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                flexShrink: 0,
-                fontSize: 'var(--text-sm)',
-                fontWeight: 700,
-              }}
-            >
-              See all <ArrowRight size={15} aria-hidden />
-            </Link>
-          </div>
-
-          <div className="listing-row">
-            {s.items.slice(0, ROW_SIZE).map((listing) => (
+            {shown.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))}
           </div>
-        </section>
-      ))}
-    </>
+        )}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: '36px' }}>
+        <Link href={exploreHref} className="btn btn-secondary" style={{ padding: '12px 28px' }}>
+          <span>{selected ? `See all ${selectedLabel}` : `View all ${city} discoveries`}</span>
+          <ArrowRight size={16} aria-hidden />
+        </Link>
+      </div>
+    </section>
   );
 }
