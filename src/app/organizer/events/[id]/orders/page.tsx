@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { api, ApiError } from '@/lib/api-client';
 import { OrganizerOrder, PaginatedResponse } from '@/types/api';
 import OrganizerGuard from '@/components/organizer/OrganizerGuard';
 import OrganizerNav from '@/components/organizer/OrganizerNav';
+import { EmptyStateFrame, EMPTY_STATE_MIN_HEIGHT, TableSkeleton } from '@/components/ui/Skeletons';
+import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
 import {
   ArrowLeft,
   ShoppingBag,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   CheckCircle2,
@@ -23,6 +24,7 @@ import {
 export default function OrganizerOrdersPage() {
   const params = useParams();
   const id = params?.id as string;
+  const { isAuthenticated, isLoading: isAuthLoading } = useOrganizerAuth();
 
   const [orders, setOrders] = useState<OrganizerOrder[]>([]);
   const [pagination, setPagination] = useState({
@@ -32,10 +34,13 @@ export default function OrganizerOrdersPage() {
     totalPages: 1,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const fetchOrders = async (targetPage = 1) => {
     if (!id) return;
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
@@ -49,18 +54,25 @@ export default function OrganizerOrdersPage() {
         totalPages: 1,
       };
 
+      if (requestId !== requestIdRef.current) return;
       setOrders(orderList);
       setPagination(pageInfo);
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
       setError(err?.message || 'Failed to load orders. Please try again.');
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
   };
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
+    setHasLoaded(false);
     fetchOrders(1);
-  }, [id]);
+  }, [id, isAuthLoading, isAuthenticated]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
@@ -107,7 +119,7 @@ export default function OrganizerOrdersPage() {
                 cursor: 'pointer',
               }}
             >
-              <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={13} className={isLoading ? 'spin-animation' : ''} />
               <span>Refresh</span>
             </button>
           </div>
@@ -133,11 +145,9 @@ export default function OrganizerOrdersPage() {
             </p>
           </div>
 
-          {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
-              <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
-          ) : error ? (
+          {(isLoading || !hasLoaded) && orders.length === 0 && !error ? (
+            <TableSkeleton rows={8} />
+          ) : error && orders.length === 0 && hasLoaded ? (
             <div
               className="glass-card-static"
               style={{
@@ -167,22 +177,20 @@ export default function OrganizerOrdersPage() {
               </button>
             </div>
           ) : orders.length === 0 ? (
-            <div
-              className="glass-card-static"
+            <EmptyStateFrame
+              minHeight={EMPTY_STATE_MIN_HEIGHT.table}
               style={{
-                padding: '4rem 2rem',
                 borderRadius: '16px',
-                textAlign: 'center',
                 border: '1px solid var(--border-card, rgba(255, 255, 255, 0.08))',
                 backgroundColor: 'var(--bg-card, rgba(18, 24, 38, 0.85))',
               }}
             >
-              <ShoppingBag size={40} style={{ margin: '0 auto 1rem', color: 'var(--primary, #ff5a36)', opacity: 0.5 }} />
+              <ShoppingBag size={40} style={{ marginBottom: '1rem', color: 'var(--primary, #ff5a36)', opacity: 0.5 }} />
               <h3 style={{ color: 'var(--text-primary, #f8fafc)', margin: '0 0 0.5rem' }}>No orders yet</h3>
               <p style={{ color: 'var(--text-secondary, #94a3b8)', fontSize: '0.85rem', margin: 0 }}>
                 Orders will appear here as attendees purchase tickets.
               </p>
-            </div>
+            </EmptyStateFrame>
           ) : (
             <div
               className="glass-card-static"
@@ -191,6 +199,9 @@ export default function OrganizerOrdersPage() {
                 border: '1px solid var(--border-card, rgba(255, 255, 255, 0.08))',
                 backgroundColor: 'var(--bg-card, rgba(18, 24, 38, 0.85))',
                 overflow: 'hidden',
+                opacity: isLoading ? 0.55 : 1,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: isLoading ? 'none' : 'auto',
               }}
             >
               <div style={{ overflowX: 'auto' }}>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api, ApiError } from '@/lib/api-client';
@@ -8,6 +8,8 @@ import { OrganizerEventSummary } from '@/types/api';
 import OrganizerGuard from '@/components/organizer/OrganizerGuard';
 import OrganizerNav from '@/components/organizer/OrganizerNav';
 import EventStatusBadge from '@/components/organizer/EventStatusBadge';
+import { DashboardCardSkeleton, EmptyStateFrame, EMPTY_STATE_MIN_HEIGHT } from '@/components/ui/Skeletons';
+import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
 import {
   Calendar,
   MapPin,
@@ -17,31 +19,40 @@ import {
   Edit3,
   AlertTriangle,
   PlusCircle,
-  Loader2,
   RefreshCw,
 } from 'lucide-react';
 
 export default function OrganizerDashboardPage() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useOrganizerAuth();
   const [events, setEvents] = useState<OrganizerEventSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const fetchEvents = async () => {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
       const data = await api.getOrganizerEvents();
+      if (requestId !== requestIdRef.current) return;
       setEvents(data || []);
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
       setError(err?.message || 'Failed to load your events. Please try again.');
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
   };
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
     fetchEvents();
-  }, []);
+  }, [isAuthLoading, isAuthenticated]);
 
   return (
     <OrganizerGuard>
@@ -96,7 +107,7 @@ export default function OrganizerDashboardPage() {
                 }}
                 title="Refresh list"
               >
-                <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+                <RefreshCw size={14} className={isLoading ? 'spin-animation' : ''} />
                 <span>Refresh</span>
               </button>
 
@@ -122,26 +133,22 @@ export default function OrganizerDashboardPage() {
             </div>
           </div>
 
-          {/* Loading State */}
-          {isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-              <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
+          {/* Initial loading — keep skeleton until first fetch settles */}
+          {(isAuthLoading || isLoading || !hasLoaded) && events.length === 0 && !error && (
+            <DashboardCardSkeleton count={6} />
           )}
 
           {/* Error State */}
-          {!isLoading && error && (
-            <div
-              className="glass-card-static"
+          {error && events.length === 0 && hasLoaded && (
+            <EmptyStateFrame
+              minHeight={EMPTY_STATE_MIN_HEIGHT.dashboardGrid}
               style={{
-                padding: '2rem',
                 borderRadius: '16px',
-                textAlign: 'center',
                 backgroundColor: 'rgba(239, 68, 68, 0.08)',
                 border: '1px solid rgba(239, 68, 68, 0.25)',
               }}
             >
-              <AlertTriangle size={32} style={{ color: '#ef4444', margin: '0 auto 0.75rem' }} />
+              <AlertTriangle size={32} style={{ color: '#ef4444', marginBottom: '0.75rem' }} />
               <h3 style={{ margin: '0 0 0.5rem', color: '#f87171' }}>Unable to load events</h3>
               <p style={{ margin: '0 0 1.25rem', fontSize: '0.875rem', color: 'var(--text-secondary, #94a3b8)' }}>{error}</p>
               <button
@@ -158,22 +165,20 @@ export default function OrganizerDashboardPage() {
               >
                 Retry
               </button>
-            </div>
+            </EmptyStateFrame>
           )}
 
-          {/* Empty State */}
-          {!isLoading && !error && events.length === 0 && (
-            <div
-              className="glass-card-static"
+          {/* Empty State — only after a completed load */}
+          {hasLoaded && !isLoading && !error && events.length === 0 && (
+            <EmptyStateFrame
+              minHeight={EMPTY_STATE_MIN_HEIGHT.dashboardGrid}
               style={{
-                padding: '4rem 2rem',
                 borderRadius: '20px',
-                textAlign: 'center',
                 border: '1px dashed var(--border-color, rgba(255, 255, 255, 0.15))',
                 backgroundColor: 'var(--bg-card, rgba(18, 24, 38, 0.5))',
               }}
             >
-              <Calendar size={48} style={{ color: 'var(--primary, #ff5a36)', margin: '0 auto 1rem', opacity: 0.6 }} />
+              <Calendar size={48} style={{ color: 'var(--primary, #ff5a36)', marginBottom: '1rem', opacity: 0.6 }} />
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', margin: '0 0 0.5rem' }}>
                 No events found for this account
               </h2>
@@ -182,7 +187,7 @@ export default function OrganizerDashboardPage() {
                   fontSize: '0.875rem',
                   color: 'var(--text-secondary, #94a3b8)',
                   maxWidth: '420px',
-                  margin: '0 auto 1.5rem',
+                  margin: '0 0 1.5rem',
                 }}
               >
                 You haven&apos;t submitted any events under this email address yet, or they are still in the submission pipeline.
@@ -205,16 +210,19 @@ export default function OrganizerDashboardPage() {
                 <PlusCircle size={16} />
                 <span>Submit Your First Event</span>
               </Link>
-            </div>
+            </EmptyStateFrame>
           )}
 
-          {/* Events Grid */}
-          {!isLoading && !error && events.length > 0 && (
+          {/* Events Grid — keep visible while refreshing */}
+          {events.length > 0 && (
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                 gap: '1.5rem',
+                opacity: isLoading ? 0.55 : 1,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: isLoading ? 'none' : 'auto',
               }}
             >
               {events.map((event) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
@@ -17,6 +17,7 @@ import CountdownBadge from '@/components/listings/CountdownBadge';
 import AddToCalendarMenu from '@/components/listings/AddToCalendarMenu';
 import EventPassPreviewCard from '@/components/tickets/EventPassPreviewCard';
 import CheckoutModal from '@/components/tickets/CheckoutModal';
+import { ListingDetailSkeleton } from '@/components/ui/Skeletons';
 import {
   MapPin,
   MessageCircle,
@@ -30,7 +31,6 @@ import {
   Phone,
   Mail,
   ChevronLeft,
-  Sparkles,
   FileText,
   Utensils,
   Building2,
@@ -46,36 +46,41 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [activeImage, setActiveImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
   const [copiedShare, setCopiedShare] = useState<boolean>(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
   const [selectedTierForModal, setSelectedTierForModal] = useState<TicketTier | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    if (!id) return;
+    const requestId = ++requestIdRef.current;
+    setIsLoading(true);
+    setHasLoaded(false);
+    setListing(null);
+
     async function loadListing() {
-      if (!id) return;
-      setIsLoading(true);
       try {
         const data = await api.getListingById(id);
+        if (requestId !== requestIdRef.current) return;
         setListing(data);
         setActiveImage(data.thumbnailUrl);
       } catch (err) {
         console.error('Failed to load listing:', err);
+        if (requestId !== requestIdRef.current) return;
+        setListing(null);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+          setHasLoaded(true);
+        }
       }
     }
     loadListing();
   }, [id]);
 
-  if (isLoading) {
-    return (
-      <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
-        <Sparkles size={40} color="var(--primary)" className="glow-animation" />
-        <div style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: 'var(--text-lg)' }}>
-          Loading place details...
-        </div>
-      </div>
-    );
+  if (isLoading || !hasLoaded) {
+    return <ListingDetailSkeleton />;
   }
 
   if (!listing) {

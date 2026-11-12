@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCity } from '@/context/CityContext';
 import { api } from '@/lib/api-client';
 import { Category, ListingDetail, ListingType, CategorySlug } from '@/types/api';
 import ListingCard from '@/components/listings/ListingCard';
+import {
+  EmptyStateFrame,
+  EMPTY_STATE_MIN_HEIGHT,
+  ExplorePageSkeleton,
+  ListingGridSkeleton,
+} from '@/components/ui/Skeletons';
 import {
   CATEGORY_CONFIG,
   ABEKOULA_NEIGHBORHOODS,
@@ -41,7 +47,9 @@ function ExploreContent() {
   const [listings, setListings] = useState<ListingDetail[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, totalPages: 1 });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+  const requestIdRef = useRef(0);
 
   // Load Categories on mount
   useEffect(() => {
@@ -50,8 +58,10 @@ function ExploreContent() {
 
   // Fetch listings whenever filters change
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    setIsLoading(true);
+
     async function fetchResults() {
-      setIsLoading(true);
       try {
         const res = await api.getListings({
           city: currentCity,
@@ -64,6 +74,8 @@ function ExploreContent() {
           limit: 12,
         });
 
+        if (requestId !== requestIdRef.current) return;
+
         setListings(res.data || []);
         if (res.pagination) {
           setPagination(res.pagination);
@@ -71,7 +83,10 @@ function ExploreContent() {
       } catch (err) {
         console.error('Failed to fetch filtered listings:', err);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+          setHasLoaded(true);
+        }
       }
     }
 
@@ -357,46 +372,45 @@ function ExploreContent() {
           </div>
 
           {/* Listing Grid */}
-          {isLoading ? (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '24px',
-              }}
-            >
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="glass-card-static"
-                  style={{ height: '360px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-secondary)', opacity: 0.5 }}
-                />
-              ))}
-            </div>
+          {isLoading || !hasLoaded ? (
+            listings.length === 0 ? (
+              <ListingGridSkeleton count={6} />
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '24px',
+                  opacity: 0.55,
+                  transition: 'opacity 0.2s ease',
+                  pointerEvents: 'none',
+                }}
+              >
+                {listings.map((item) => (
+                  <ListingCard key={item.id} listing={item} />
+                ))}
+              </div>
+            )
           ) : listings.length === 0 ? (
-            <div
-              className="glass-card-static"
-              style={{
-                padding: '60px 20px',
-                textAlign: 'center',
-                borderRadius: 'var(--radius-lg)',
-              }}
-            >
+            <EmptyStateFrame minHeight={EMPTY_STATE_MIN_HEIGHT.listingGrid} style={{ borderRadius: 'var(--radius-lg)' }}>
               <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '14px' }} />
               <h3 style={{ fontSize: '1.4rem', marginBottom: '8px' }}>No matches found</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', maxWidth: '420px', margin: '0 auto 20px auto' }}>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', maxWidth: '420px' }}>
                 We couldn't find any places matching your exact filter criteria in {currentCity}. Try resetting filters or browsing other categories.
               </p>
               <button onClick={handleResetFilters} className="btn btn-primary">
                 Clear All Filters
               </button>
-            </div>
+            </EmptyStateFrame>
           ) : (
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                 gap: '24px',
+                opacity: isLoading ? 0.55 : 1,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: isLoading ? 'none' : 'auto',
               }}
             >
               {listings.map((item) => (
@@ -467,14 +481,7 @@ function ExploreContent() {
 
 export default function ExplorePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-          <Sparkles size={32} color="var(--primary)" className="glow-animation" />
-          <div style={{ marginTop: '12px', color: 'var(--text-muted)' }}>Loading City Explorer...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<ExplorePageSkeleton />}>
       <ExploreContent />
     </Suspense>
   );

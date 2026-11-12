@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useCity } from '@/context/CityContext';
 import { api } from '@/lib/api-client';
@@ -25,10 +25,13 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredListings, setFeaturedListings] = useState<ListingDetail[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    setIsLoading(true);
+
     async function loadHomeData() {
-      setIsLoading(true);
       try {
         const [sliderRes, catsRes, listingsRes] = await Promise.all([
           api.getUpcomingCountdown(currentCity, 8).catch(() => []),
@@ -36,13 +39,17 @@ export default function HomePage() {
           api.getListings({ city: currentCity, limit: 12 }).catch(() => ({ data: [] })),
         ]);
 
+        if (requestId !== requestIdRef.current) return;
+
         setCountdownItems(Array.isArray(sliderRes) ? sliderRes : []);
         setCategories(Array.isArray(catsRes) ? catsRes : []);
         setFeaturedListings(Array.isArray(listingsRes?.data) ? listingsRes.data : []);
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -164,10 +171,10 @@ export default function HomePage() {
       </div>
 
       {/* 3. Category Explorer */}
-      <CategoryExplorer categories={categories} />
+      <CategoryExplorer categories={categories} isLoading={isLoading} />
 
       {/* 4. Featured & Discoveries Grid */}
-      <FeaturedSection listings={featuredListings} city={currentCity} />
+      <FeaturedSection listings={featuredListings} city={currentCity} isLoading={isLoading} />
 
       {/* 5. Submitter Banner Callout */}
       <div

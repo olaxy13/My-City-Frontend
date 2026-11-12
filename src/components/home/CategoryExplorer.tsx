@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Category, CategorySlug } from '@/types/api';
 import { CATEGORY_CONFIG } from '@/lib/utils';
+import { CategoryGridSkeleton } from '@/components/ui/Skeletons';
 import {
   Music,
   Utensils,
@@ -21,6 +22,7 @@ interface CategoryExplorerProps {
   categories: Category[];
   selectedCategory?: string;
   onSelectCategory?: (slug: CategorySlug) => void;
+  isLoading?: boolean;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -36,7 +38,12 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   HeartPulse: <HeartPulse size={22} />,
 };
 
-export default function CategoryExplorer({ categories = [], selectedCategory, onSelectCategory }: CategoryExplorerProps) {
+export default function CategoryExplorer({
+  categories = [],
+  selectedCategory,
+  onSelectCategory,
+  isLoading = false,
+}: CategoryExplorerProps) {
   const safeCategories = Array.isArray(categories) ? categories : [];
 
   return (
@@ -53,6 +60,9 @@ export default function CategoryExplorer({ categories = [], selectedCategory, on
         </Link>
       </div>
 
+      {isLoading ? (
+        <CategoryGridSkeleton />
+      ) : (
       <div
         style={{
           display: 'grid',
@@ -133,6 +143,7 @@ export default function CategoryExplorer({ categories = [], selectedCategory, on
           );
         })}
       </div>
+      )}
     </div>
   );
 }

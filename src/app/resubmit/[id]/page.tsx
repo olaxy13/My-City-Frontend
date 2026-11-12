@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
 import { ListingDetail, Category, CategorySlug } from '@/types/api';
 import { ABEKOULA_NEIGHBORHOODS, CATEGORY_CONFIG, readAndCompressImage } from '@/lib/utils';
+import { FormSectionSkeleton } from '@/components/ui/Skeletons';
 import {
   AlertTriangle,
   CheckCircle,
@@ -189,9 +190,8 @@ function ResubmitForm() {
 
   if (isLoading) {
     return (
-      <div className="container" style={{ padding: '90px 0', textAlign: 'center' }}>
-        <Loader2 size={36} color="var(--primary)" className="glow-animation" />
-        <div style={{ marginTop: '14px', color: 'var(--text-muted)' }}>Loading listing submission...</div>
+      <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '860px' }}>
+        <FormSectionSkeleton sections={3} />
       </div>
     );
   }
@@ -612,8 +612,8 @@ export default function ResubmitPage() {
   return (
     <Suspense
       fallback={
-        <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-          <Loader2 size={32} color="var(--primary)" className="glow-animation" />
+        <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px', maxWidth: '860px' }}>
+          <FormSectionSkeleton sections={3} />
         </div>
       }
     >

@@ -4,14 +4,16 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ListingDetail, ListingType } from '@/types/api';
 import ListingCard from '../listings/ListingCard';
+import { EmptyStateFrame, EMPTY_STATE_MIN_HEIGHT, ListingGridSkeleton } from '@/components/ui/Skeletons';
 import { Sparkles, Calendar, UtensilsCrossed, Building2 } from 'lucide-react';
 
 interface FeaturedSectionProps {
   listings: ListingDetail[];
   city: string;
+  isLoading?: boolean;
 }
 
-export default function FeaturedSection({ listings = [], city }: FeaturedSectionProps) {
+export default function FeaturedSection({ listings = [], city, isLoading = false }: FeaturedSectionProps) {
   const [activeTab, setActiveTab] = useState<'all' | ListingType>('all');
   const safeListings = Array.isArray(listings) ? listings : [];
 
@@ -82,10 +84,12 @@ export default function FeaturedSection({ listings = [], city }: FeaturedSection
       </div>
 
       {/* Grid */}
-      {filteredListings.length === 0 ? (
-        <div className="glass-card-static" style={{ padding: '40px', textAlign: 'center' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>No listings found in this category.</p>
-        </div>
+      {isLoading ? (
+        <ListingGridSkeleton count={6} />
+      ) : filteredListings.length === 0 ? (
+        <EmptyStateFrame minHeight={EMPTY_STATE_MIN_HEIGHT.listingGrid}>
+          <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No listings found in this category.</p>
+        </EmptyStateFrame>
       ) : (
         <div
           style={{

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { api, ApiError } from '@/lib/api-client';
@@ -11,6 +11,8 @@ import EventStatusBadge from '@/components/organizer/EventStatusBadge';
 import RevenueBreakdownCard from '@/components/organizer/RevenueBreakdownCard';
 import TicketTierTable from '@/components/organizer/TicketTierTable';
 import SalesChart from '@/components/organizer/SalesChart';
+import { AnalyticsSkeleton } from '@/components/ui/Skeletons';
+import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
 import {
   ArrowLeft,
   Calendar,
@@ -19,7 +21,6 @@ import {
   ShoppingBag,
   Edit3,
   QrCode,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   ExternalLink,
@@ -28,28 +29,40 @@ import {
 export default function OrganizerEventAnalyticsPage() {
   const params = useParams();
   const id = params?.id as string;
+  const { isAuthenticated, isLoading: isAuthLoading } = useOrganizerAuth();
 
   const [analytics, setAnalytics] = useState<OrganizerEventAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const fetchAnalytics = async () => {
     if (!id) return;
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
       const data = await api.getOrganizerEventAnalytics(id);
+      if (requestId !== requestIdRef.current) return;
       setAnalytics(data);
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
       setError(err?.message || 'Unable to load event analytics. Please try again.');
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
   };
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
+    setHasLoaded(false);
+    setAnalytics(null);
     fetchAnalytics();
-  }, [id]);
+  }, [id, isAuthLoading, isAuthenticated]);
 
   return (
     <OrganizerGuard>
@@ -75,13 +88,9 @@ export default function OrganizerEventAnalyticsPage() {
             </Link>
           </div>
 
-          {isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
-              <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
-          )}
+          {(isLoading || !hasLoaded) && !analytics && !error && <AnalyticsSkeleton />}
 
-          {!isLoading && error && (
+          {error && !analytics && hasLoaded && (
             <div
               className="glass-card-static"
               style={{
@@ -112,8 +121,14 @@ export default function OrganizerEventAnalyticsPage() {
             </div>
           )}
 
-          {!isLoading && !error && analytics && (
-            <div>
+          {analytics && (
+            <div
+              style={{
+                opacity: isLoading ? 0.55 : 1,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: isLoading ? 'none' : 'auto',
+              }}
+            >
               {/* Header Details */}
               <div
                 style={{

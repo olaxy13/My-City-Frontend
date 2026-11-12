@@ -33,11 +33,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning data-theme="dark" data-scroll-behavior="smooth">
       <head>
         {/* Explicit favicon link — .webp is not auto-handled by Next.js file conventions */}
         <link rel="icon" href="/favicon.webp" type="image/webp" />
         <link rel="apple-touch-icon" href="/favicon.webp" />
+        {/* Apply saved theme before first paint to prevent dark→light (or light→dark) flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('city_discovery_theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else{document.documentElement.setAttribute('data-theme','dark');}}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`,
+          }}
+        />
         <Script
           id="global-error-suppression"
           strategy="beforeInteractive"
