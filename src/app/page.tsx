@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCity } from '@/context/CityContext';
 import { api } from '@/lib/api-client';
 import { Category, CountdownSliderItem, ListingDetail } from '@/types/api';
-import CountdownHeroSlider from '@/components/home/CountdownHeroSlider';
+import HomeHero from '@/components/home/HomeHero';
 import CategoryExplorer from '@/components/home/CategoryExplorer';
 import FeaturedSection from '@/components/home/FeaturedSection';
 import {
@@ -58,8 +58,8 @@ export default function HomePage() {
 
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
-      {/* 1. Hero Countdown Slider */}
-      <CountdownHeroSlider items={countdownItems} isLoading={isLoading} />
+      {/* 1. Search-first hero with the next upcoming events */}
+      <HomeHero items={countdownItems} isLoading={isLoading} />
 
       {/* 2. Quick Value Proposition Pills */}
       <div
