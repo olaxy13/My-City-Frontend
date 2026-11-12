@@ -72,31 +72,31 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
               <li>
-                <Link href="/explore?type=event" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <Link href="/explore?type=event" className="footer-link">
                   <Calendar size={15} />
                   Upcoming Events & Festivals
                 </Link>
               </li>
               <li>
-                <Link href="/explore?type=restaurant" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <Link href="/explore?type=restaurant" className="footer-link">
                   <Utensils size={15} />
                   Top Restaurants & Dining Spots
                 </Link>
               </li>
               <li>
-                <Link href="/explore?type=facility" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <Link href="/explore?type=facility" className="footer-link">
                   <Building2 size={15} />
                   Medical & Public Facilities
                 </Link>
               </li>
               <li>
-                <Link href="/explore?category=nightlife" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <Link href="/explore?category=nightlife" className="footer-link">
                   <Wine size={15} />
                   Lounges & Nightlife
                 </Link>
               </li>
               <li>
-                <a href="mailto:hello@citybuzz.live" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <a href="mailto:hello@citybuzz.live" className="footer-link">
                   <Mail size={15} />
                   Contact Us
                 </a>
