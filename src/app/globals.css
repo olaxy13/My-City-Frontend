@@ -263,6 +263,73 @@ button {
   flex-shrink: 0;
 }
 
+/* Home neighborhood cards: a bento grid (busiest area large), a swipe strip on phones */
+.area-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 150px;
+  gap: 14px;
+}
+
+.area-grid > :first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.area-card__photo {
+  transition: transform 0.5s ease;
+}
+
+.area-card:hover .area-card__photo,
+.area-card:focus-visible .area-card__photo {
+  transform: scale(1.06);
+}
+
+@media (max-width: 960px) {
+  .area-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 140px;
+  }
+
+  .area-grid > :first-child {
+    grid-row: span 1;
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .area-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 72%;
+    grid-auto-rows: 190px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .area-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .area-grid > * {
+    scroll-snap-align: start;
+  }
+
+  .area-grid > :first-child {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .area-card__photo {
+    transition: none;
+  }
+}
+
 /* Glassmorphism Containers */
 .glass-nav {
   background: var(--bg-glass);
