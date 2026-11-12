@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCity } from '@/context/CityContext';
-import { Compass, Heart, ShieldCheck, Sparkles, MapPin, Mail, Calendar, Utensils, Building2, Wine } from 'lucide-react';
+import { Compass, Heart, ShieldCheck, Sparkles, MapPin, Mail, Calendar, Utensils, Building2, Wine, Briefcase } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -135,6 +135,14 @@ export default function Footer() {
             <Link href="/submit" className="btn btn-primary" style={{ width: '100%', fontSize: '0.88rem', padding: '9px 14px' }}>
               <Sparkles size={16} />
               Submit Your Place/Event
+            </Link>
+            <Link
+              href="/organizer"
+              className="footer-link"
+              style={{ marginTop: '12px', fontSize: '0.88rem' }}
+            >
+              <Briefcase size={15} aria-hidden />
+              Organizer portal: events, orders & gate scanner
             </Link>
 
             <div
