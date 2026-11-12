@@ -571,7 +571,7 @@ export default function SubmitListingPage() {
         <h1 style={{ fontSize: '2.4rem', lineHeight: 1.2, marginBottom: '8px' }}>
           Submit a Listing to City Discovery
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)' }}>
           Reach thousands of people looking for events, dining, and places in {formData.city || currentCity}.
         </p>
       </div>
@@ -585,7 +585,7 @@ export default function SubmitListingPage() {
             justifyContent: 'space-between',
             gap: '12px',
             padding: '14px 18px',
-            borderRadius: '14px',
+            borderRadius: 'var(--radius-md)',
             background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.12), rgba(245, 158, 11, 0.1))',
             border: '1px solid rgba(255, 90, 54, 0.35)',
             marginBottom: '24px',
@@ -593,12 +593,12 @@ export default function SubmitListingPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '1.2rem' }}>📋</span>
+            <span style={{ fontSize: 'var(--text-lg)' }}>📋</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
                 Resume your draft submission?
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 We found a saved draft from your last session — your progress has been restored.
               </div>
             </div>
@@ -650,9 +650,9 @@ export default function SubmitListingPage() {
                 setShowResumeBanner(false);
               }}
               style={{
-                fontSize: '0.8rem',
+                fontSize: 'var(--text-sm)',
                 padding: '6px 14px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-sm)',
                 background: 'var(--bg-input)',
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-secondary)',
@@ -666,9 +666,9 @@ export default function SubmitListingPage() {
               type="button"
               onClick={() => setShowResumeBanner(false)}
               style={{
-                fontSize: '0.8rem',
+                fontSize: 'var(--text-sm)',
                 padding: '6px 14px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-sm)',
                 background: 'rgba(255, 90, 54, 0.18)',
                 border: '1px solid rgba(255, 90, 54, 0.4)',
                 color: 'var(--primary)',
@@ -688,7 +688,7 @@ export default function SubmitListingPage() {
           className="glass-card-static"
           style={{
             padding: '40px 30px',
-            borderRadius: '24px',
+            borderRadius: 'var(--radius-xl)',
             textAlign: 'center',
             background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08))',
             border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -711,8 +711,8 @@ export default function SubmitListingPage() {
             <CheckCircle size={38} />
           </div>
 
-          <h2 style={{ fontSize: '1.8rem', marginBottom: '12px' }}>Submission Successfully Received!</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 24px auto' }}>
+          <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '12px' }}>Submission Successfully Received!</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-md)', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 24px auto' }}>
             Your submission has been placed into our moderation queue. Our team reviews all details and verified documents within 24 hours. A confirmation email has been dispatched to <strong>{formData.submitterEmail}</strong>.
           </p>
 
@@ -721,26 +721,26 @@ export default function SubmitListingPage() {
             style={{
               background: 'var(--bg-input)',
               padding: '20px',
-              borderRadius: '16px',
+              borderRadius: 'var(--radius-lg)',
               border: '1.5px dashed var(--border-color)',
               maxWidth: '520px',
               margin: '0 auto 30px auto',
               textAlign: 'left',
             }}
           >
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent-amber)', marginBottom: '4px' }}>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: 'var(--accent-amber)', marginBottom: '4px' }}>
               🔑 SUBMISSION REVISION LINK
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: 1.5 }}>
               Bookmark this link! Submissions cannot be edited while under active moderation. If our review team requests any adjustments or additional details, this link will unlock so you can revise and resubmit:
             </div>
             <div
               style={{
                 background: 'var(--bg-card)',
                 padding: '10px 12px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-sm)',
                 fontFamily: 'monospace',
-                fontSize: '0.8rem',
+                fontSize: 'var(--text-sm)',
                 wordBreak: 'break-all',
                 color: 'var(--primary)',
               }}
@@ -766,7 +766,7 @@ export default function SubmitListingPage() {
         </div>
       ) : (
         /* Multi-Step Wizard Form */
-        <div className="glass-card-static submit-wizard-card" style={{ padding: '36px 30px', borderRadius: '24px' }}>
+        <div className="glass-card-static submit-wizard-card" style={{ padding: '36px 30px', borderRadius: 'var(--radius-xl)' }}>
           {/* Step Indicator */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', position: 'relative' }}>
             {(isEvent
@@ -803,7 +803,7 @@ export default function SubmitListingPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 800,
-                    fontSize: '0.9rem',
+                    fontSize: 'var(--text-base)',
                     boxShadow: step === s.num ? '0 0 15px var(--primary-glow)' : 'none',
                     border: '1.5px solid var(--border-color)',
                   }}
@@ -813,7 +813,7 @@ export default function SubmitListingPage() {
                 <span
                   className="step-indicator-label"
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: 'var(--text-xs)',
                     fontWeight: 700,
                     color: step >= s.num ? 'var(--text-primary)' : 'var(--text-muted)',
                     marginTop: '6px',
@@ -830,14 +830,14 @@ export default function SubmitListingPage() {
             <div
               style={{
                 padding: '14px 18px',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(239, 68, 68, 0.15)',
                 border: '1px solid rgba(239, 68, 68, 0.4)',
                 color: '#EF4444',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                fontSize: '0.9rem',
+                fontSize: 'var(--text-base)',
                 marginBottom: '24px',
               }}
             >
@@ -868,7 +868,7 @@ export default function SubmitListingPage() {
                       onClick={() => updateField('listingType', t.type)}
                       style={{
                         padding: '16px',
-                        borderRadius: '16px',
+                        borderRadius: 'var(--radius-lg)',
                         textAlign: 'left',
                         background: formData.listingType === t.type ? 'rgba(255, 90, 54, 0.15)' : 'var(--bg-input)',
                         border:
@@ -876,11 +876,11 @@ export default function SubmitListingPage() {
                         cursor: 'pointer',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: 'var(--text-base)', color: 'var(--text-primary)', marginBottom: '4px' }}>
                         <t.Icon size={16} color="var(--primary)" />
                         {t.label}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.desc}</div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{t.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -1011,7 +1011,7 @@ export default function SubmitListingPage() {
                   value={formData.description}
                   onChange={(e) => updateField('description', e.target.value)}
                 />
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '4px' }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textAlign: 'right', marginTop: '4px' }}>
                   {formData.description.length} characters (min 20)
                 </div>
               </div>
@@ -1031,7 +1031,7 @@ export default function SubmitListingPage() {
                       <div
                         style={{
                           border: '2px dashed var(--border-color)',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           textAlign: 'center',
                           background: 'var(--bg-input)',
@@ -1039,7 +1039,7 @@ export default function SubmitListingPage() {
                         }}
                       >
                         {formData.thumbnailUrl ? (
-                          <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '12px', overflow: 'hidden' }}>
+                          <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                             <img
                               src={formData.thumbnailUrl}
                               alt="Thumbnail preview"
@@ -1066,15 +1066,15 @@ export default function SubmitListingPage() {
                             {isUploadingThumbnail ? (
                               <div style={{ padding: '30px 0' }}>
                                 <Loader2 size={32} color="var(--primary)" className="glow-animation" style={{ margin: '0 auto 10px auto' }} />
-                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Uploading to Cloudinary...</div>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)' }}>Uploading to Cloudinary...</div>
                               </div>
                             ) : (
                               <label style={{ cursor: 'pointer', display: 'block', padding: '20px 0' }}>
                                 <Upload size={32} color="var(--primary)" style={{ margin: '0 auto 10px auto' }} />
-                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--text-primary)' }}>
                                   Click to upload high-res cover image
                                 </div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', marginTop: '4px' }}>
                                   PNG, JPG or WEBP (Max 10MB)
                                 </div>
                                 <input
@@ -1096,12 +1096,12 @@ export default function SubmitListingPage() {
                         <label className="form-label" style={{ margin: 0 }}>Additional Gallery Photos (Optional)</label>
                         <span
                           style={{
-                            fontSize: '0.8rem',
+                            fontSize: 'var(--text-sm)',
                             fontWeight: 700,
                             color: (formData.galleryImageUrls?.length || 0) >= 10 ? 'var(--primary)' : 'var(--text-muted)',
                             background: 'rgba(255, 255, 255, 0.05)',
                             padding: '2px 10px',
-                            borderRadius: '12px',
+                            borderRadius: 'var(--radius-md)',
                           }}
                         >
                           {formData.galleryImageUrls?.length || 0}/10 max
@@ -1115,7 +1115,7 @@ export default function SubmitListingPage() {
                               position: 'relative',
                               width: '90px',
                               height: '90px',
-                              borderRadius: '12px',
+                              borderRadius: 'var(--radius-md)',
                               overflow: 'hidden',
                             }}
                           >
@@ -1158,7 +1158,7 @@ export default function SubmitListingPage() {
                           />
                         </label>
                       ) : (
-                        <div style={{ fontSize: '0.82rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
+                        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--accent-amber)', fontWeight: 600 }}>
                           ✓ Maximum 10 gallery photos reached. Remove one above to upload a different photo.
                         </div>
                       )}
@@ -1188,7 +1188,7 @@ export default function SubmitListingPage() {
                               onChange={(e) => updateField('startDateTime', e.target.value)}
                             />
                             <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                 <Clock size={12} color="var(--primary)" /> Popular hours:
                               </span>
                               {[
@@ -1203,10 +1203,10 @@ export default function SubmitListingPage() {
                                   type="button"
                                   onClick={() => setQuickTime('startDateTime', time)}
                                   style={{
-                                    fontSize: '0.72rem',
+                                    fontSize: 'var(--text-xs)',
                                     fontWeight: 700,
                                     padding: '3px 8px',
-                                    borderRadius: '6px',
+                                    borderRadius: 'var(--radius-sm)',
                                     background: 'rgba(255, 90, 54, 0.12)',
                                     color: 'var(--primary)',
                                     border: '1px solid rgba(255, 90, 54, 0.3)',
@@ -1228,7 +1228,7 @@ export default function SubmitListingPage() {
                               onChange={(e) => updateField('endDateTime', e.target.value)}
                             />
                             <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                 <Clock size={12} color="var(--primary)" /> Popular hours:
                               </span>
                               {[
@@ -1243,10 +1243,10 @@ export default function SubmitListingPage() {
                                   type="button"
                                   onClick={() => setQuickTime('endDateTime', time)}
                                   style={{
-                                    fontSize: '0.72rem',
+                                    fontSize: 'var(--text-xs)',
                                     fontWeight: 700,
                                     padding: '3px 8px',
-                                    borderRadius: '6px',
+                                    borderRadius: 'var(--radius-sm)',
                                     background: 'rgba(255, 90, 54, 0.12)',
                                     color: 'var(--primary)',
                                     border: '1px solid rgba(255, 90, 54, 0.3)',
@@ -1262,7 +1262,7 @@ export default function SubmitListingPage() {
                         </div>
 
                         <div style={{ marginBottom: '18px' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--text-base)' }}>
                             <input
                               type="checkbox"
                               checked={formData.isRecurring || false}
@@ -1394,7 +1394,7 @@ export default function SubmitListingPage() {
                       <Ticket size={24} color="var(--primary)" />
                       <h3 style={{ fontSize: '1.3rem' }}>Step 4: Ticketing & Payouts</h3>
                     </div>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '24px', lineHeight: 1.5 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: '24px', lineHeight: 1.5 }}>
                       Define your ticket tiers and add your bank account so earnings go directly to you after every sale.
                     </p>
 
@@ -1413,7 +1413,7 @@ export default function SubmitListingPage() {
                             ])
                           }
                           className="btn btn-secondary"
-                          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                          style={{ padding: '6px 12px', fontSize: 'var(--text-sm)' }}
                         >
                           <Plus size={14} />
                           <span>Add Tier</span>
@@ -1427,14 +1427,14 @@ export default function SubmitListingPage() {
                             style={{
                               background: 'var(--bg-input)',
                               border: '1px solid var(--border-color)',
-                              borderRadius: '14px',
+                              borderRadius: 'var(--radius-md)',
                               padding: '18px 18px 14px',
                             }}
                           >
                             {/* Row 1: Tier name + delete */}
                             <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'flex-start' }}>
                               <div style={{ flex: 1 }}>
-                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Tier Name <span className="req">*</span></label>
+                                <label className="form-label" style={{ fontSize: 'var(--text-sm)' }}>Tier Name <span className="req">*</span></label>
                                 <input
                                   type="text"
                                   className="form-input"
@@ -1465,7 +1465,7 @@ export default function SubmitListingPage() {
                             {/* Row 2: Price + Capacity */}
                             <div className="submit-form-grid" style={{ marginBottom: '12px' }}>
                               <div>
-                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Price (₦) <span className="req">*</span></label>
+                                <label className="form-label" style={{ fontSize: 'var(--text-sm)' }}>Price (₦) <span className="req">*</span></label>
                                 <input
                                   type="number"
                                   className="form-input"
@@ -1484,7 +1484,7 @@ export default function SubmitListingPage() {
                                 />
                               </div>
                               <div>
-                                <label className="form-label" style={{ fontSize: '0.8rem' }}>Capacity <span className="req">*</span></label>
+                                <label className="form-label" style={{ fontSize: 'var(--text-sm)' }}>Capacity <span className="req">*</span></label>
                                 <input
                                   type="number"
                                   className="form-input"
@@ -1506,7 +1506,7 @@ export default function SubmitListingPage() {
 
                             {/* Row 3: Description */}
                             <div>
-                              <label className="form-label" style={{ fontSize: '0.8rem' }}>Perks / Description (Optional)</label>
+                              <label className="form-label" style={{ fontSize: 'var(--text-sm)' }}>Perks / Description (Optional)</label>
                               <input
                                 type="text"
                                 className="form-input"
@@ -1533,9 +1533,9 @@ export default function SubmitListingPage() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                         <Banknote size={20} color="#10B981" />
-                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Where should we send your earnings?</h4>
+                        <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 700 }}>Where should we send your earnings?</h4>
                       </div>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '18px', lineHeight: 1.5 }}>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: '18px', lineHeight: 1.5 }}>
                         Required for paid tiers. Your payout goes directly to this bank account after each transaction. Leave blank if all tiers are free.
                       </p>
 
@@ -1556,7 +1556,7 @@ export default function SubmitListingPage() {
                           ))}
                         </select>
                         {banksList.length === 0 && (
-                          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '4px' }}>
                             Loading banks...
                           </p>
                         )}
@@ -1601,10 +1601,10 @@ export default function SubmitListingPage() {
                           )}
                         </div>
                         {accountResolveError && (
-                          <p style={{ fontSize: '0.8rem', color: '#EF4444', marginTop: '4px' }}>{accountResolveError}</p>
+                          <p style={{ fontSize: 'var(--text-sm)', color: '#EF4444', marginTop: '4px' }}>{accountResolveError}</p>
                         )}
                         {formData.payoutAccountName && !isResolvingAccount && (
-                          <p style={{ fontSize: '0.78rem', color: '#10B981', marginTop: '4px' }}>
+                          <p style={{ fontSize: 'var(--text-xs)', color: '#10B981', marginTop: '4px' }}>
                             ✓ Verified: {formData.payoutAccountName}
                           </p>
                         )}
@@ -1625,18 +1625,18 @@ export default function SubmitListingPage() {
                       <div
                         style={{
                           padding: '14px 18px',
-                          borderRadius: '12px',
+                          borderRadius: 'var(--radius-md)',
                           background: 'rgba(245, 158, 11, 0.12)',
                           border: '1px solid rgba(245, 158, 11, 0.3)',
                           color: 'var(--text-primary)',
-                          fontSize: '0.88rem',
+                          fontSize: 'var(--text-sm)',
                           marginBottom: '20px',
                         }}
                       >
                         <strong style={{ color: 'var(--accent-amber)' }}>Compulsory Verification:</strong> To protect city residents, all food establishments and public facilities must provide valid legal verification proof (CAC Certificate, Ogun State operating permit, or medical practice license).
                       </div>
                     ) : (
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)', marginBottom: '20px' }}>
                         Optional for cultural & community events, but uploading permits gives your listing a <strong>Verified Badge</strong>.
                       </p>
                     )}
@@ -1661,11 +1661,11 @@ export default function SubmitListingPage() {
                               justifyContent: 'space-between',
                               padding: '10px 14px',
                               background: 'var(--bg-input)',
-                              borderRadius: '10px',
+                              borderRadius: 'var(--radius-md)',
                               border: '1px solid var(--border-color)',
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)' }}>
                               <FileText size={16} color="var(--accent-emerald)" />
                               <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                                 Verified Document #{idx + 1}
@@ -1730,7 +1730,7 @@ export default function SubmitListingPage() {
                 {step === submitterStep && (
                   <div>
                     <h3 style={{ fontSize: '1.3rem', marginBottom: '20px' }}>Step {submitterStep}: Submitter Information</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)', marginBottom: '20px' }}>
                       We will send status notifications and moderation feedback directly to this email address.
                     </p>
 
