@@ -186,6 +186,36 @@ button {
   border-color: var(--primary) !important;
 }
 
+/* Navbar links */
+.nav-link-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-link-item svg {
+  color: var(--primary);
+}
+
+.nav-link-item:hover,
+.nav-link-item:focus-visible {
+  background: rgba(255, 90, 54, 0.08);
+  color: var(--text-primary);
+}
+
+.nav-link-item[aria-current='page'] {
+  background: rgba(255, 90, 54, 0.12);
+  border-color: rgba(255, 90, 54, 0.35);
+  color: var(--text-primary);
+}
+
 /* Chip row: wraps on wide screens, scrolls sideways on narrow ones */
 .chip-row {
   position: relative; /* keeps visually-hidden text inside the scroller */

@@ -18,7 +18,7 @@ import {
   Compass,
   Home,
   ChevronDown,
-  Briefcase,
+  QrCode,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -64,6 +64,19 @@ export default function Navbar() {
 
   return (
     <header className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+      {/* Brand accent along the bottom edge */}
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -1,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.7) 30%, rgba(245, 158, 11, 0.6) 70%, transparent)',
+          pointerEvents: 'none',
+        }}
+      />
       <div className="container nav-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -114,6 +127,11 @@ export default function Navbar() {
               }}
               title="Change active city"
             >
+              <span
+                aria-hidden
+                className="live-dot"
+                style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-emerald)', flexShrink: 0 }}
+              />
               <MapPin size={14} color="var(--primary)" aria-hidden />
               <span className="city-label" style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{currentCity}</span>
               <ChevronDown size={14} color="var(--text-muted)" aria-hidden />
@@ -195,14 +213,13 @@ export default function Navbar() {
             background: 'var(--bg-input)',
             borderRadius: '9999px',
             border: '1.5px solid var(--border-color)',
-            padding: '8px 16px',
+            padding: '4px 4px 4px 16px',
             width: '260px',
             maxWidth: '300px',
             margin: '0 12px',
           }}
-          className="desktop-search"
+          className="desktop-search nav-search"
         >
-          <Search size={15} color="var(--text-muted)" style={{ marginRight: '8px', flexShrink: 0 }} aria-hidden />
           <label htmlFor="nav-search" className="sr-only">
             Search events, food and places
           </label>
@@ -219,24 +236,50 @@ export default function Navbar() {
               color: 'var(--text-primary)',
               fontSize: '0.86rem',
               width: '100%',
+              padding: '6px 0',
             }}
           />
+          <button
+            type="submit"
+            aria-label="Search"
+            style={{
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              background: 'linear-gradient(135deg, var(--primary), #ff833e)',
+              boxShadow: '0 3px 10px rgba(255, 90, 54, 0.35)',
+              cursor: 'pointer',
+            }}
+          >
+            <Search size={15} aria-hidden />
+          </button>
         </form>
         )}
 
         {/* Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {/* Navigation Links */}
-          <nav aria-label="Main" style={{ display: 'none', gap: '6px', alignItems: 'center' }} className="desktop-nav">
+          <nav aria-label="Main" style={{ display: 'none', gap: '4px', alignItems: 'center' }} className="desktop-nav">
             <Link
               href="/explore"
               aria-current={pathname?.startsWith('/explore') ? 'page' : undefined}
               className="nav-link-item"
             >
-              Explore
+              <Compass size={16} aria-hidden />
+              <span>Explore</span>
             </Link>
-            <Link href="/organizer" className="nav-link-item">
-              For organizers
+            <Link
+              href="/organizer/check-in"
+              className="nav-link-item"
+              title="Event check-in QR scanner"
+            >
+              <QrCode size={16} color="var(--accent-emerald)" aria-hidden />
+              <span>Gate Scanner</span>
             </Link>
           </nav>
 
@@ -262,7 +305,7 @@ export default function Navbar() {
             aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
-            {theme === 'dark' ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
+            {theme === 'dark' ? <Sun size={17} color="#F59E0B" aria-hidden /> : <Moon size={17} color="#6366F1" aria-hidden />}
           </button>
 
           {/* Admin Indicator (only rendered when an admin is actively logged in) */}
@@ -324,19 +367,26 @@ export default function Navbar() {
           }
         }
 
-        .nav-link-item {
-          font-size: var(--text-sm);
-          font-weight: 600;
-          color: var(--text-secondary);
-          padding: 8px 12px;
-          border-radius: var(--radius-sm);
-          transition: color 0.15s ease, background 0.15s ease;
+        .nav-search {
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        .nav-link-item:hover,
-        .nav-link-item:focus-visible,
-        .nav-link-item[aria-current='page'] {
-          background: rgba(255, 90, 54, 0.08);
-          color: var(--text-primary);
+        .nav-search:focus-within {
+          border-color: var(--primary) !important;
+          box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .live-dot {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+          animation: livePulse 2.4s ease-out infinite;
+        }
+        @keyframes livePulse {
+          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+          70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .live-dot {
+            animation: none;
+          }
         }
 
         /* Tablet: hide brand subtitle */
@@ -414,17 +464,17 @@ export default function Navbar() {
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)' }}
           >
-            <Compass size={18} aria-hidden />
+            <Compass size={18} color="var(--primary)" aria-hidden />
             Explore
           </Link>
 
           <Link
-            href="/organizer"
+            href="/organizer/check-in"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Briefcase size={18} aria-hidden />
-            For organizers
+            <QrCode size={18} color="var(--accent-emerald)" aria-hidden />
+            Gate Scanner
           </Link>
 
           <Link
