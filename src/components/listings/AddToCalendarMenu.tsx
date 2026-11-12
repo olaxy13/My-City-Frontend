@@ -98,7 +98,7 @@ export default function AddToCalendarMenu({
             minWidth: '240px',
             background: 'var(--bg-card)',
             border: '1px solid var(--border-light)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '8px',
             boxShadow: '0 16px 36px rgba(0, 0, 0, 0.45)',
             backdropFilter: 'blur(20px)',
@@ -108,7 +108,7 @@ export default function AddToCalendarMenu({
           <div
             style={{
               padding: '6px 12px 8px 12px',
-              fontSize: '0.72rem',
+              fontSize: 'var(--text-xs)',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -132,8 +132,8 @@ export default function AddToCalendarMenu({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
               textDecoration: 'none',
@@ -158,8 +158,8 @@ export default function AddToCalendarMenu({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
               textDecoration: 'none',
@@ -183,8 +183,8 @@ export default function AddToCalendarMenu({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
               border: 'none',
@@ -196,7 +196,7 @@ export default function AddToCalendarMenu({
               <Download size={16} color="var(--primary)" />
               <div>
                 <div>Apple / iCal (.ics)</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 400 }}>
                   Works with iOS, Android & Desktop
                 </div>
               </div>

@@ -94,13 +94,13 @@ function ExploreContent() {
     <div className="container" style={{ paddingTop: '30px', paddingBottom: '80px' }}>
       {/* Header Banner */}
       <div style={{ marginBottom: '30px' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
           Discover {currentCity}
         </div>
         <h1 style={{ fontSize: '2.2rem', lineHeight: 1.2, marginBottom: '8px' }}>
           Explore Events, Dining & Places
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-base)' }}>
           Find what to do, where to eat, and essential services happening right now around {currentCity}.
         </p>
       </div>
@@ -119,7 +119,7 @@ function ExploreContent() {
           className="glass-card-static sidebar-panel"
           style={{
             padding: '24px',
-            borderRadius: '20px',
+            borderRadius: 'var(--radius-lg)',
             alignSelf: 'start',
             position: 'sticky',
             top: '90px',
@@ -128,7 +128,7 @@ function ExploreContent() {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '1.1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: 'var(--text-lg)' }}>
               <Filter size={18} color="var(--primary)" />
               <span>Filters</span>
             </div>
@@ -140,7 +140,7 @@ function ExploreContent() {
                   alignItems: 'center',
                   gap: '4px',
                   color: 'var(--primary)',
-                  fontSize: '0.8rem',
+                  fontSize: 'var(--text-sm)',
                   fontWeight: 700,
                 }}
               >
@@ -202,9 +202,9 @@ function ExploreContent() {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 12px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--radius-md)',
                     textAlign: 'left',
-                    fontSize: '0.88rem',
+                    fontSize: 'var(--text-sm)',
                     fontWeight: type === item.val ? 700 : 500,
                     background: type === item.val ? 'var(--primary)' : 'var(--bg-input)',
                     color: type === item.val ? '#ffffff' : 'var(--text-primary)',
@@ -239,8 +239,8 @@ function ExploreContent() {
                   }}
                   style={{
                     padding: '6px 8px',
-                    borderRadius: '8px',
-                    fontSize: '0.8rem',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--text-sm)',
                     fontWeight: datePreset === d.val ? 700 : 500,
                     background: datePreset === d.val ? 'var(--accent-amber)' : 'var(--bg-input)',
                     color: datePreset === d.val ? '#000000' : 'var(--text-primary)',
@@ -284,9 +284,9 @@ function ExploreContent() {
                 }}
                 style={{
                   padding: '6px 10px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-sm)',
                   textAlign: 'left',
-                  fontSize: '0.85rem',
+                  fontSize: 'var(--text-sm)',
                   fontWeight: category === '' ? 700 : 500,
                   background: category === '' ? 'rgba(255, 90, 54, 0.15)' : 'transparent',
                   color: category === '' ? 'var(--primary)' : 'var(--text-secondary)',
@@ -309,16 +309,16 @@ function ExploreContent() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '6px 10px',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--radius-sm)',
                       textAlign: 'left',
-                      fontSize: '0.85rem',
+                      fontSize: 'var(--text-sm)',
                       fontWeight: isCatActive ? 700 : 500,
                       background: isCatActive ? 'rgba(255, 90, 54, 0.15)' : 'transparent',
                       color: isCatActive ? 'var(--primary)' : 'var(--text-secondary)',
                     }}
                   >
                     <span>{config.label}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({cat.listingCount})</span>
+                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>({cat.listingCount})</span>
                   </button>
                 );
               })}
@@ -339,7 +339,7 @@ function ExploreContent() {
               marginBottom: '20px',
             }}
           >
-            <div style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 'var(--text-base)', color: 'var(--text-secondary)' }}>
               Showing <strong style={{ color: 'var(--text-primary)' }}>{listings.length}</strong> of{' '}
               <strong style={{ color: 'var(--text-primary)' }}>{pagination.total}</strong> results in{' '}
               <strong>{currentCity}</strong>
@@ -349,7 +349,7 @@ function ExploreContent() {
             <button
               onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
               className="btn btn-secondary mobile-filter-btn"
-              style={{ display: 'none', padding: '8px 14px', fontSize: '0.85rem' }}
+              style={{ display: 'none', padding: '8px 14px', fontSize: 'var(--text-sm)' }}
             >
               <Filter size={15} />
               <span>Toggle Filters</span>
@@ -369,7 +369,7 @@ function ExploreContent() {
                 <div
                   key={i}
                   className="glass-card-static"
-                  style={{ height: '360px', borderRadius: '18px', background: 'var(--bg-secondary)', opacity: 0.5 }}
+                  style={{ height: '360px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-secondary)', opacity: 0.5 }}
                 />
               ))}
             </div>
@@ -379,7 +379,7 @@ function ExploreContent() {
               style={{
                 padding: '60px 20px',
                 textAlign: 'center',
-                borderRadius: '20px',
+                borderRadius: 'var(--radius-lg)',
               }}
             >
               <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '14px' }} />
@@ -426,7 +426,7 @@ function ExploreContent() {
                 <span>Prev</span>
               </button>
 
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Page {pagination.page} of {pagination.totalPages}
               </span>
 
