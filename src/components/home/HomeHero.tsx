@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Calendar, CalendarDays, CalendarRange, MapPin, Music, Search, type LucideIcon } from 'lucide-react';
-import type { CountdownSliderItem } from '@/types/api';
+import { Calendar, CalendarDays, CalendarRange, Search, type LucideIcon } from 'lucide-react';
+import type { Category, CountdownSliderItem } from '@/types/api';
 import { useCity } from '@/context/CityContext';
 import CountdownHeroSlider from './CountdownHeroSlider';
+import CategoryExplorer from './CategoryExplorer';
 
 /** Date shortcuts into Explore. Food and facilities have their own rows further down. */
 const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
@@ -17,10 +18,11 @@ const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
 
 interface HomeHeroProps {
   items: CountdownSliderItem[];
+  categories: Category[];
   isLoading: boolean;
 }
 
-export default function HomeHero({ items, isLoading }: HomeHeroProps) {
+export default function HomeHero({ items, categories, isLoading }: HomeHeroProps) {
   const { currentCity } = useCity();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -147,21 +149,24 @@ export default function HomeHero({ items, isLoading }: HomeHeroProps) {
       <div style={{ minWidth: 0 }}>
         <CountdownHeroSlider items={items} isLoading={isLoading} />
       </div>
+
+      {/* Bottom strip, full width: categories */}
+      <div
+        style={{
+          gridColumn: '1 / -1',
+          minWidth: 0,
+          paddingTop: 'clamp(18px, 2.5vw, 24px)',
+          borderTop: '1px solid var(--border-color)',
+        }}
+      >
+        <CategoryExplorer categories={categories} isLoading={isLoading} />
+      </div>
     </section>
   );
 }
 
-/** Edge-only dot grid and two faint icons behind the hero. */
+/** Edge-only dot grid behind the hero. */
 function HeroBackdrop() {
-  const ghost = (rotate: number): React.CSSProperties => ({
-    position: 'absolute',
-    width: 'clamp(48px, 7vw, 92px)',
-    height: 'clamp(48px, 7vw, 92px)',
-    color: 'var(--primary)',
-    opacity: 0.08,
-    transform: `rotate(${rotate}deg)`,
-  });
-
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none' }}>
       <div
@@ -170,12 +175,10 @@ function HeroBackdrop() {
           inset: 0,
           backgroundImage: 'radial-gradient(rgba(255, 90, 54, 0.28) 1.2px, transparent 1.6px)',
           backgroundSize: '22px 22px',
-          maskImage: 'radial-gradient(ellipse 70% 75% at 30% 50%, transparent 40%, #000 90%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 70% 75% at 30% 50%, transparent 40%, #000 90%)',
+          maskImage: 'radial-gradient(ellipse 70% 75% at 30% 45%, transparent 40%, #000 90%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 70% 75% at 30% 45%, transparent 40%, #000 90%)',
         }}
       />
-      <MapPin style={{ ...ghost(-8), bottom: '6%', left: '3%' }} />
-      <Music style={{ ...ghost(10), bottom: '8%', left: '42%' }} />
     </div>
   );
 }

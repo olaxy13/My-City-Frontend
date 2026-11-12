@@ -39,25 +39,32 @@ interface CategoryExplorerProps {
 }
 
 /**
- * One row of category chips linking into Explore. Icons share the brand
- * colour so coral stays the single accent; the row wraps on wide screens
- * and scrolls sideways on narrow ones.
+ * The hero's bottom strip: a small label and one line of category chips
+ * that scrolls sideways, each linking to Explore filtered by category.
  */
 export default function CategoryExplorer({ categories = [], isLoading = false }: CategoryExplorerProps) {
   const safeCategories = Array.isArray(categories) ? categories : [];
 
   return (
-    <section aria-labelledby="browse-categories" style={{ margin: '40px 0' }}>
+    <nav aria-labelledby="browse-categories" style={{ minWidth: 0 }}>
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          gap: '16px',
-          marginBottom: '16px',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '12px',
         }}
       >
-        <h2 id="browse-categories" style={{ fontSize: 'var(--text-xl)', lineHeight: 1.2 }}>
+        <h2
+          id="browse-categories"
+          style={{
+            fontSize: 'var(--text-sm)',
+            fontWeight: 700,
+            color: 'var(--text-secondary)',
+            letterSpacing: '0.02em',
+          }}
+        >
           Browse by category
         </h2>
         <Link
@@ -79,7 +86,7 @@ export default function CategoryExplorer({ categories = [], isLoading = false }:
       {isLoading ? (
         <CategoryGridSkeleton />
       ) : (
-        <ul className="chip-row" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul className="chip-row chip-row--scroll" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {safeCategories.map((cat) => {
             const config = CATEGORY_CONFIG[cat.slug];
             const Icon = (config && ICONS[config.iconName]) || Compass;
@@ -93,7 +100,7 @@ export default function CategoryExplorer({ categories = [], isLoading = false }:
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '9px 16px',
+                    padding: '8px 15px',
                     borderRadius: 'var(--radius-full)',
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border-color)',
@@ -118,6 +125,6 @@ export default function CategoryExplorer({ categories = [], isLoading = false }:
           })}
         </ul>
       )}
-    </section>
+    </nav>
   );
 }

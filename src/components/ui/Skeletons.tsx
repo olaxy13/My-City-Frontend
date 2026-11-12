@@ -111,7 +111,7 @@ export function ListingGridSkeleton({ count = 6 }: { count?: number }) {
 export function CategoryGridSkeleton({ count = 9 }: { count?: number }) {
   const widths = [132, 120, 140, 128, 118, 124, 116, 136, 130];
   return (
-    <div role="status" aria-busy="true" aria-label="Loading categories" className="chip-row">
+    <div role="status" aria-busy="true" aria-label="Loading categories" className="chip-row chip-row--scroll">
       <span className="sr-only">Loading categories</span>
       {Array.from({ length: count }).map((_, i) => (
         <Bone key={i} width={widths[i % widths.length]} height={38} radius="var(--radius-full)" />

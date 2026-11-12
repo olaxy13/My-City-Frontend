@@ -5,7 +5,6 @@ import { useCity } from '@/context/CityContext';
 import { api } from '@/lib/api-client';
 import { Category, CountdownSliderItem, ListingDetail } from '@/types/api';
 import HomeHero from '@/components/home/HomeHero';
-import CategoryExplorer from '@/components/home/CategoryExplorer';
 import OrganizerBanner from '@/components/home/OrganizerBanner';
 import FeaturedSection, { ROW_SIZE, type ListingRowsData } from '@/components/home/FeaturedSection';
 
@@ -72,16 +71,13 @@ export default function HomePage() {
 
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
-      {/* 1. Search-first hero with the next upcoming events */}
-      <HomeHero items={countdownItems} isLoading={isLoading} />
+      {/* 1. Hero: search, date shortcuts, next events and categories */}
+      <HomeHero items={countdownItems} categories={categories} isLoading={isLoading} />
 
-      {/* 2. Category chips */}
-      <CategoryExplorer categories={categories} isLoading={isLoading} />
-
-      {/* 3. Listings, one row per intent */}
+      {/* 2. Listings, one row per intent */}
       <FeaturedSection rows={listingRows} city={currentCity} isLoading={isLoading} />
 
-      {/* 4. The one section for organizers and businesses */}
+      {/* 3. The one section for organizers and businesses */}
       <OrganizerBanner city={currentCity} />
     </div>
   );
