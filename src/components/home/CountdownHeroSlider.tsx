@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Sparkles,
   Ticket,
+  Zap,
 } from 'lucide-react';
 
 interface CountdownHeroSliderProps {
@@ -291,8 +292,9 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
               boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
             }}
           >
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              ⚡ Live Countdown to Event
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <Zap size={12} />
+              Live Countdown to Event
             </div>
             <CountdownBadge targetDate={current.startDateTime} size="lg" />
           </div>

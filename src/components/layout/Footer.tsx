@@ -73,27 +73,27 @@ export default function Footer() {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
               <li>
                 <Link href="/explore?type=event" style={{ color: 'var(--text-secondary)' }}>
-                  🎉 Upcoming Events & Festivals
+                  Upcoming Events & Festivals
                 </Link>
               </li>
               <li>
                 <Link href="/explore?type=restaurant" style={{ color: 'var(--text-secondary)' }}>
-                  🍲 Top Restaurants & Dining Spots
+                  Top Restaurants & Dining Spots
                 </Link>
               </li>
               <li>
                 <Link href="/explore?type=facility" style={{ color: 'var(--text-secondary)' }}>
-                  🏥 Medical & Public Facilities
+                  Medical & Public Facilities
                 </Link>
               </li>
               <li>
                 <Link href="/explore?category=nightlife" style={{ color: 'var(--text-secondary)' }}>
-                  🍸 Lounges & Nightlife
+                  Lounges & Nightlife
                 </Link>
               </li>
               <li>
                 <a href="mailto:hello@citybuzz.live" style={{ color: 'var(--text-secondary)' }}>
-                  ✉️ Contact Us
+                  Contact Us
                 </a>
               </li>
             </ul>

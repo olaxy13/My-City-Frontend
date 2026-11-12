@@ -25,7 +25,7 @@ export default function EventPassPreviewCard({
   const hasFree = prices.some((p) => p === 0);
 
   return (
-    <div className="event-pass-preview-card glass-card">
+    <div className="event-pass-preview-card glass-card-static">
       {/* Top Header */}
       <div className="preview-header">
         <div className="status-pill">

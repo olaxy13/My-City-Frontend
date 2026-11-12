@@ -565,7 +565,8 @@ export default function SubmitListingPage() {
       {/* Title Header */}
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
         <div className="badge badge-featured" style={{ marginBottom: '10px' }}>
-          ⭐ 100% FREE COMMUNITY SUBMISSION
+          <Sparkles size={12} />
+          100% FREE COMMUNITY SUBMISSION
         </div>
         <h1 style={{ fontSize: '2.4rem', lineHeight: 1.2, marginBottom: '8px' }}>
           Submit a Listing to City Discovery
@@ -857,9 +858,9 @@ export default function SubmitListingPage() {
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                   {[
-                    { type: 'event' as ListingType, label: '🎉 Event / Festival', desc: 'Concerts, sports, hackathons' },
-                    { type: 'restaurant' as ListingType, label: '🍲 Food & Dining', desc: 'Amala spots, cafes, lounges' },
-                    { type: 'facility' as ListingType, label: '🏥 Essential Facility', desc: 'Hospitals, tech hubs, parks' },
+                    { type: 'event' as ListingType, label: 'Event / Festival', Icon: Calendar, desc: 'Concerts, sports, hackathons' },
+                    { type: 'restaurant' as ListingType, label: 'Food & Dining', Icon: Utensils, desc: 'Amala spots, cafes, lounges' },
+                    { type: 'facility' as ListingType, label: 'Essential Facility', Icon: Building2, desc: 'Hospitals, tech hubs, parks' },
                   ].map((t) => (
                     <button
                       key={t.type}
@@ -875,7 +876,8 @@ export default function SubmitListingPage() {
                         cursor: 'pointer',
                       }}
                     >
-                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                        <t.Icon size={16} color="var(--primary)" />
                         {t.label}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.desc}</div>

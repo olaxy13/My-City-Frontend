@@ -36,6 +36,7 @@ import {
   Building2,
   Check,
   Ticket,
+  Repeat,
 } from 'lucide-react';
 
 export default function ListingDetailPage() {
@@ -299,7 +300,7 @@ export default function ListingDetailPage() {
           {/* Live Countdown Banner (If Event) */}
           {isEvent && listing.eventDetails?.startDateTime && (
             <div
-              className="glass-card"
+              className="glass-card-static"
               style={{
                 marginTop: '24px',
                 padding: '24px',
@@ -396,8 +397,9 @@ export default function ListingDetailPage() {
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       Schedule
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--accent-amber)', marginTop: '4px' }}>
-                      🔁 Recurring Event
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.95rem', color: 'var(--accent-amber)', marginTop: '4px' }}>
+                      <Repeat size={15} />
+                      Recurring Event
                     </div>
                   </div>
                 )}

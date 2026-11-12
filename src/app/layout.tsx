@@ -99,11 +99,7 @@ export default function RootLayout({
                   }
                   if (
                     msg.indexOf('MetaMask') !== -1 ||
-                    file.indexOf('chrome-extension://') !== -1 ||
-                    // Suppress transient race-condition errors on initial async data load
-                    // These are caught and handled gracefully in the UI components
-                    (msg.indexOf('Cannot read properties of undefined') !== -1 && file.indexOf('CountdownHeroSlider') !== -1) ||
-                    (msg.indexOf('is not a function') !== -1 && file.indexOf('CategoryExplorer') !== -1)
+                    file.indexOf('chrome-extension://') !== -1
                   ) {
                     e.stopImmediatePropagation();
                     e.preventDefault();

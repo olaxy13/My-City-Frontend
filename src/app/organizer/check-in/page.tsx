@@ -431,7 +431,7 @@ function GateScannerContent() {
   if (!isGateUnlocked) {
     return (
       <div className="container" style={{ padding: '60px 20px', maxWidth: '540px', margin: '0 auto' }}>
-        <div className="glass-card gate-lock-card">
+        <div className="glass-card-static gate-lock-card">
           <div className="lock-icon-bubble">
             <Lock size={32} color="var(--primary)" />
           </div>

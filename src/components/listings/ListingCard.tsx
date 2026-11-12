@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   ExternalLink,
   Star,
+  Utensils,
+  Building2,
 } from 'lucide-react';
 
 interface ListingCardProps {
@@ -67,14 +69,12 @@ export default function ListingCard({ listing }: ListingCardProps) {
           <img
             src={listing.thumbnailUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800'}
             alt={listing.title}
+            className="hover-zoom"
             style={{
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              transition: 'transform 0.35s ease',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
-            onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           />
         </Link>
 
@@ -155,15 +155,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
           {/* Title */}
           <h3 style={{ fontSize: '1.15rem', lineHeight: 1.3, marginBottom: '8px' }}>
-            <Link
-              href={`/listings/${listing.id}`}
-              style={{
-                color: 'var(--text-primary)',
-                transition: 'color 0.2s',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.color = 'var(--primary)')}
-              onMouseOut={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-            >
+            <Link href={`/listings/${listing.id}`} className="hover-link">
               {listing.title}
             </Link>
           </h3>
@@ -195,8 +187,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
             {isRestaurant && listing.restaurantDetails && (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                  🍴 {listing.restaurantDetails.cuisineType}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <Utensils size={14} color="var(--primary)" />
+                  {listing.restaurantDetails.cuisineType}
                 </span>
                 {listing.restaurantDetails.priceRange && (
                   <span style={{ fontWeight: 700, color: 'var(--accent-amber)' }}>
@@ -208,7 +201,8 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
             {isFacility && listing.facilityDetails && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-emerald)', fontWeight: 600 }}>
-                <span>🏥 {listing.facilityDetails.facilityCategory}</span>
+                <Building2 size={14} />
+                <span>{listing.facilityDetails.facilityCategory}</span>
               </div>
             )}
           </div>

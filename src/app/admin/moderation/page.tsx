@@ -1126,14 +1126,12 @@ export default function ModerationPage() {
                           <img
                             src={img.imageUrl}
                             alt={`Gallery ${idx + 1}`}
+                            className="hover-zoom"
                             style={{
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
-                              transition: 'transform 0.2s ease',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                           />
                         </div>
                       ))}

@@ -128,7 +128,7 @@ export default function Navbar() {
 
             {isCityDropdownOpen && (
               <div
-                className="glass-card"
+                className="glass-card-static"
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
@@ -404,7 +404,7 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <div
-          className="glass-card"
+          className="glass-card-static"
           style={{
             padding: '16px',
             margin: '0 12px 12px 12px',

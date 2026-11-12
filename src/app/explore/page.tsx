@@ -187,9 +187,9 @@ function ExploreContent() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[
                 { label: 'All Types', val: '' },
-                { label: '🎉 Events & Festivals', val: 'event' },
-                { label: '🍲 Food & Dining', val: 'restaurant' },
-                { label: '🏥 Essential Facilities', val: 'facility' },
+                { label: 'Events & Festivals', val: 'event', Icon: Calendar },
+                { label: 'Food & Dining', val: 'restaurant', Icon: UtensilsCrossed },
+                { label: 'Essential Facilities', val: 'facility', Icon: Building2 },
               ].map((item) => (
                 <button
                   key={item.val}
@@ -198,6 +198,9 @@ function ExploreContent() {
                     setPage(1);
                   }}
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                     padding: '8px 12px',
                     borderRadius: '10px',
                     textAlign: 'left',
@@ -209,6 +212,7 @@ function ExploreContent() {
                     transition: 'all 0.15s ease',
                   }}
                 >
+                  {item.Icon && <item.Icon size={15} />}
                   {item.label}
                 </button>
               ))}

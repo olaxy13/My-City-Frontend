@@ -64,7 +64,7 @@ export default function HomePage() {
         }}
       >
         <div
-          className="glass-card"
+          className="glass-card-static"
           style={{
             padding: '16px 20px',
             display: 'flex',
@@ -97,7 +97,7 @@ export default function HomePage() {
         </div>
 
         <div
-          className="glass-card"
+          className="glass-card-static"
           style={{
             padding: '16px 20px',
             display: 'flex',
@@ -130,7 +130,7 @@ export default function HomePage() {
         </div>
 
         <div
-          className="glass-card"
+          className="glass-card-static"
           style={{
             padding: '16px 20px',
             display: 'flex',
@@ -171,7 +171,7 @@ export default function HomePage() {
 
       {/* 5. Submitter Banner Callout */}
       <div
-        className="glass-card callout-banner"
+        className="glass-card-static callout-banner"
         style={{
           marginTop: '60px',
           padding: '40px',
@@ -187,7 +187,8 @@ export default function HomePage() {
       >
         <div style={{ maxWidth: '640px' }}>
           <span className="badge badge-featured" style={{ marginBottom: '12px' }}>
-            ⚡ FREE COMMUNITY DIRECTORY
+            <Zap size={12} />
+            FREE COMMUNITY DIRECTORY
           </span>
           <h2 style={{ fontSize: 'clamp(1.35rem, 4vw, 2rem)', marginBottom: '10px' }}>
             Are you hosting an event or running a business in {currentCity}?

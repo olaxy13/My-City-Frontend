@@ -127,7 +127,7 @@ function ConfirmationContent() {
   if (isLoading) {
     return (
       <div className="container" style={{ padding: '90px 20px', maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
-        <div className="glass-card" style={{ padding: '48px 24px', borderRadius: '24px' }}>
+        <div className="glass-card-static" style={{ padding: '48px 24px', borderRadius: '24px' }}>
           <div className="verify-spinner-wrap">
             <Loader2 size={48} className="spin-animation" color="var(--primary)" />
             <ShieldCheck size={24} className="shield-overlay" color="#10B981" />
@@ -153,7 +153,7 @@ function ConfirmationContent() {
   if (error || !data || !data.isSuccess) {
     return (
       <div className="container" style={{ padding: '80px 20px', maxWidth: '680px', margin: '0 auto' }}>
-        <div className="glass-card error-card" style={{ padding: '40px 28px', borderRadius: '24px', textAlign: 'center' }}>
+        <div className="glass-card-static error-card" style={{ padding: '40px 28px', borderRadius: '24px', textAlign: 'center' }}>
           <div className="error-icon-box">
             <AlertTriangle size={36} color="#EF4444" />
           </div>
@@ -211,7 +211,7 @@ function ConfirmationContent() {
   return (
     <div className="container confirmation-page" style={{ paddingTop: '32px', paddingBottom: '90px', maxWidth: '820px' }}>
       {/* Printable Confirmation Card */}
-      <div className="glass-card confirmation-card printable-ticket-area">
+      <div className="glass-card-static confirmation-card printable-ticket-area">
         {/* Success Banner */}
         <div className="success-banner">
           <div className="success-icon-bubble">
