@@ -108,35 +108,13 @@ export function ListingGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
-export function CategoryGridSkeleton({ count = 8 }: { count?: number }) {
+export function CategoryGridSkeleton({ count = 9 }: { count?: number }) {
+  const widths = [132, 120, 140, 128, 118, 124, 116, 136, 130];
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Loading categories"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-        gap: '14px',
-      }}
-    >
+    <div role="status" aria-busy="true" aria-label="Loading categories" className="chip-row">
       <span className="sr-only">Loading categories</span>
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="glass-card-static"
-          style={{
-            padding: '18px 14px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '10px',
-          }}
-        >
-          <Bone width={48} height={48} radius="var(--radius-md)" />
-          <Bone width="70%" height={14} />
-          <Bone width="40%" height={10} />
-        </div>
+        <Bone key={i} width={widths[i % widths.length]} height={38} radius="var(--radius-full)" />
       ))}
     </div>
   );
