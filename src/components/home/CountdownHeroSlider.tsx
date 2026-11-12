@@ -132,17 +132,23 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         color: '#fff',
       }}
     >
-      {/* Photo with a bottom scrim for the text */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${current.thumbnailUrl || FALLBACK_IMAGE})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
+      {/* Every event's photo is stacked; the current one fades in over the others */}
+      {safeItems.map((item, i) => (
+        <div
+          key={item.id}
+          aria-hidden
+          className="hero-slide-photo"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${item.thumbnailUrl || FALLBACK_IMAGE})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: i === index ? 1 : 0,
+            transform: i === index ? 'scale(1)' : 'scale(1.04)',
+          }}
+        />
+      ))}
       <div
         aria-hidden
         style={{
@@ -222,6 +228,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         aria-live={isPaused ? 'polite' : 'off'}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '20px 20px 18px' }}
       >
+        {/* Re-keyed per event so the text fades up with the new photo */}
+        <div key={current.id} className="hero-slide-text">
         <div
           style={{
             display: 'flex',
@@ -274,6 +282,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
             <span>View event</span>
             <ArrowRight size={15} aria-hidden />
           </Link>
+        </div>
+
         </div>
 
         {total > 1 && (
