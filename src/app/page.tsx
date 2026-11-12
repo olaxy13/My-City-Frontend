@@ -7,12 +7,10 @@ import { api } from '@/lib/api-client';
 import { Category, CountdownSliderItem, ListingDetail } from '@/types/api';
 import HomeHero from '@/components/home/HomeHero';
 import CategoryExplorer from '@/components/home/CategoryExplorer';
-import FeaturedSection from '@/components/home/FeaturedSection';
+import FeaturedSection, { ROW_SIZE, type ListingRowsData } from '@/components/home/FeaturedSection';
 import {
   ShieldCheck,
-  Sparkles,
   Zap,
-  MapPin,
   PlusCircle,
   Clock,
   ArrowRight,
@@ -23,7 +21,7 @@ export default function HomePage() {
 
   const [countdownItems, setCountdownItems] = useState<CountdownSliderItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [featuredListings, setFeaturedListings] = useState<ListingDetail[]>([]);
+  const [listingRows, setListingRows] = useState<ListingRowsData>({ events: [], restaurants: [], facilities: [] });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const requestIdRef = useRef(0);
 
@@ -33,17 +31,29 @@ export default function HomePage() {
 
     async function loadHomeData() {
       try {
-        const [sliderRes, catsRes, listingsRes] = await Promise.all([
+        // Local YYYY-MM-DD, so the events row only shows today onwards
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        const listingsOfType = (type: string, extra: { startDate?: string } = {}) =>
+          api
+            .getListings({ city: currentCity, type, limit: ROW_SIZE, ...extra })
+            .then((res) => (Array.isArray(res?.data) ? res.data : []))
+            .catch((): ListingDetail[] => []);
+
+        const [sliderRes, catsRes, events, restaurants, facilities] = await Promise.all([
           api.getUpcomingCountdown(currentCity, 8).catch(() => []),
           api.getCategories().catch(() => []),
-          api.getListings({ city: currentCity, limit: 12 }).catch(() => ({ data: [] })),
+          listingsOfType('event', { startDate: today }),
+          listingsOfType('restaurant'),
+          listingsOfType('facility'),
         ]);
 
         if (requestId !== requestIdRef.current) return;
 
         setCountdownItems(Array.isArray(sliderRes) ? sliderRes : []);
         setCategories(Array.isArray(catsRes) ? catsRes : []);
-        setFeaturedListings(Array.isArray(listingsRes?.data) ? listingsRes.data : []);
+        setListingRows({ events, restaurants, facilities });
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {
@@ -173,8 +183,8 @@ export default function HomePage() {
       {/* 3. Category Explorer */}
       <CategoryExplorer categories={categories} isLoading={isLoading} />
 
-      {/* 4. Featured & Discoveries Grid */}
-      <FeaturedSection listings={featuredListings} city={currentCity} isLoading={isLoading} />
+      {/* 4. Listings, one row per intent */}
+      <FeaturedSection rows={listingRows} city={currentCity} isLoading={isLoading} />
 
       {/* 5. Submitter Banner Callout */}
       <div

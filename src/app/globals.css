@@ -186,6 +186,30 @@ button {
   border-color: var(--primary) !important;
 }
 
+/* Home listing rows: three across, a swipeable strip on smaller screens */
+.listing-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 960px) {
+  .listing-row {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 78%);
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+    overscroll-behavior-x: contain;
+  }
+
+  .listing-row > * {
+    scroll-snap-align: start;
+  }
+}
+
 /* Glassmorphism Containers */
 .glass-nav {
   background: var(--bg-glass);
