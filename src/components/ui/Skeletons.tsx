@@ -76,16 +76,12 @@ export function ListingCardSkeleton() {
         height: '100%',
       }}
     >
-      <Bone height={210} radius="0" />
-      <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <Bone width="46%" height={12} />
-        <Bone width="88%" height={20} />
+      <Bone height={200} radius="0" />
+      <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <Bone width="80%" height={20} />
+        <Bone width="42%" height={12} />
         <Bone width="100%" height={12} />
-        <Bone width="72%" height={12} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
-          <Bone height={36} radius="var(--radius-md)" />
-          <Bone height={36} radius="var(--radius-md)" />
-        </div>
+        <Bone width="55%" height={14} style={{ marginTop: '6px' }} />
       </div>
     </div>
   );
