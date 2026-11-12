@@ -28,25 +28,36 @@ export default function HomePage() {
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-        const listingsOfType = (type: string, extra: { startDate?: string } = {}) =>
+        const HERO_EVENTS = 8;
+
+        const listingsOfType = (type: string, extra: { startDate?: string; limit?: number } = {}) =>
           api
             .getListings({ city: currentCity, type, limit: ROW_SIZE, ...extra })
             .then((res) => (Array.isArray(res?.data) ? res.data : []))
             .catch((): ListingDetail[] => []);
 
         const [sliderRes, catsRes, events, restaurants, facilities] = await Promise.all([
-          api.getUpcomingCountdown(currentCity, 8).catch(() => []),
+          api.getUpcomingCountdown(currentCity, HERO_EVENTS).catch(() => []),
           api.getCategories().catch(() => []),
-          listingsOfType('event', { startDate: today }),
+          // Over-fetch so the row still fills after removing the hero's events
+          listingsOfType('event', { startDate: today, limit: ROW_SIZE + HERO_EVENTS }),
           listingsOfType('restaurant'),
           listingsOfType('facility'),
         ]);
 
         if (requestId !== requestIdRef.current) return;
 
-        setCountdownItems(Array.isArray(sliderRes) ? sliderRes : []);
+        const heroEvents = Array.isArray(sliderRes) ? sliderRes : [];
+        const inHero = new Set(heroEvents.map((e) => e.id));
+
+        setCountdownItems(heroEvents);
         setCategories(Array.isArray(catsRes) ? catsRes : []);
-        setListingRows({ events, restaurants, facilities });
+        setListingRows({
+          // The hero already shows these; the row only adds other upcoming events
+          events: events.filter((e) => !inHero.has(e.id)).slice(0, ROW_SIZE),
+          restaurants,
+          facilities,
+        });
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {

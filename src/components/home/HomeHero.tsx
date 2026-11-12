@@ -3,17 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Calendar, CalendarDays, MapPin, Music, Search, Utensils, type LucideIcon } from 'lucide-react';
+import { Calendar, CalendarDays, CalendarRange, MapPin, Music, Search, type LucideIcon } from 'lucide-react';
 import type { CountdownSliderItem } from '@/types/api';
 import { useCity } from '@/context/CityContext';
 import CountdownHeroSlider from './CountdownHeroSlider';
 
-/** Shortcuts into Explore's existing URL filters. */
+/** Date shortcuts into Explore. Food and facilities have their own rows further down. */
 const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
   { label: 'Today', href: '/explore?date=today', Icon: Calendar },
   { label: 'This weekend', href: '/explore?date=this-weekend', Icon: CalendarDays },
-  { label: 'Food & dining', href: '/explore?type=restaurant', Icon: Utensils },
-  { label: 'Essential places', href: '/explore?type=facility', Icon: Building2 },
+  { label: 'This week', href: '/explore?date=this-week', Icon: CalendarRange },
 ];
 
 interface HomeHeroProps {

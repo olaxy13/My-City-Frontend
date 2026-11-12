@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCity } from '@/context/CityContext';
-import { Compass, Heart, ShieldCheck, Sparkles, MapPin, Mail, Calendar, Utensils, Building2, Wine, Briefcase } from 'lucide-react';
+import { Compass, Heart, ShieldCheck, MapPin, Mail, Calendar, Utensils, Building2, Wine, Briefcase, PlusCircle } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -95,12 +95,6 @@ export default function Footer() {
                   Lounges & Nightlife
                 </Link>
               </li>
-              <li>
-                <a href="mailto:hello@citybuzz.live" className="footer-link">
-                  <Mail size={15} />
-                  Contact Us
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -124,57 +118,31 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Col 4: For Businesses & Creators */}
+          {/* Col 4: Organizers & contact (the home page banner does the pitching) */}
           <div>
             <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '18px', color: 'var(--text-primary)' }}>
-              For Organizers & Businesses
+              For organizers
             </h4>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.5 }}>
-              Listing is 100% free! Reach thousands of city residents looking for activities today.
-            </p>
-            <Link href="/submit" className="btn btn-primary" style={{ width: '100%', fontSize: '0.88rem', padding: '9px 14px' }}>
-              <Sparkles size={16} />
-              Submit Your Place/Event
-            </Link>
-            <Link
-              href="/organizer"
-              className="footer-link"
-              style={{ marginTop: '12px', fontSize: '0.88rem' }}
-            >
-              <Briefcase size={15} aria-hidden />
-              Organizer portal: events, orders & gate scanner
-            </Link>
-
-            <div
-              style={{
-                marginTop: '20px',
-                paddingTop: '16px',
-                borderTop: '1px dashed var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-              }}
-            >
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Contact & Support
-              </span>
-              <a
-                href="mailto:hello@citybuzz.live"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  color: 'var(--primary)',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  transition: 'opacity 0.2s ease',
-                }}
-              >
-                <Mail size={16} />
-                hello@citybuzz.live
-              </a>
-            </div>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
+              <li>
+                <Link href="/submit" className="footer-link">
+                  <PlusCircle size={15} aria-hidden />
+                  Submit a listing (free)
+                </Link>
+              </li>
+              <li>
+                <Link href="/organizer" className="footer-link">
+                  <Briefcase size={15} aria-hidden />
+                  Organizer portal
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:hello@citybuzz.live" className="footer-link">
+                  <Mail size={15} aria-hidden />
+                  hello@citybuzz.live
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
