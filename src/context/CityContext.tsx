@@ -27,19 +27,25 @@ const DEFAULT_CITIES: City[] = [
   { id: '4', name: 'Abuja', state: 'FCT', isActive: false },
 ];
 
+const CITY_STORAGE_KEY = 'city_discovery_selected_city';
+
+function readSavedCity(): string {
+  if (typeof window === 'undefined') return 'Abeokuta';
+  try {
+    return localStorage.getItem(CITY_STORAGE_KEY) || 'Abeokuta';
+  } catch {
+    return 'Abeokuta';
+  }
+}
+
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
 export function CityProvider({ children }: { children: React.ReactNode }) {
-  const [currentCity, setCurrentCityState] = useState<string>('Abeokuta');
+  const [currentCity, setCurrentCityState] = useState<string>(readSavedCity);
   const [cities, setCities] = useState<City[]>(DEFAULT_CITIES);
   const [isLoadingCities, setIsLoadingCities] = useState<boolean>(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('city_discovery_selected_city');
-    if (saved) {
-      setCurrentCityState(saved);
-    }
-
     async function fetchCities() {
       try {
         const data = await api.getCities();
@@ -58,7 +64,11 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
   const setCurrentCity = (city: string) => {
     setCurrentCityState(city);
-    localStorage.setItem('city_discovery_selected_city', city);
+    try {
+      localStorage.setItem(CITY_STORAGE_KEY, city);
+    } catch {
+      // ignore storage access errors
+    }
   };
 
   const activeCityObj = cities.find((c) => c.name.toLowerCase() === currentCity.toLowerCase());
@@ -75,8 +85,8 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         setCurrentCity,
         cities,
         isLoadingCities,
-        activeCityObj, getNeighborhoodsForCity,
-
+        activeCityObj,
+        getNeighborhoodsForCity,
       }}
     >
       {children}

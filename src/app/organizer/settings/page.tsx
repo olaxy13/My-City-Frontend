@@ -5,6 +5,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { OrganizerSettings } from '@/types/api';
 import OrganizerGuard from '@/components/organizer/OrganizerGuard';
 import OrganizerNav from '@/components/organizer/OrganizerNav';
+import { FormSectionSkeleton } from '@/components/ui/Skeletons';
 import {
   Bell,
   Calendar,
@@ -157,9 +158,7 @@ export default function OrganizerSettingsPage() {
           )}
 
           {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-              <Loader2 size={32} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
+            <FormSectionSkeleton sections={2} />
           ) : (
             <form onSubmit={handleSave}>
               <div

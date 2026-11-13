@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import { api, ApiError } from '@/lib/api-client';
 import { VerifyTicketPaymentResponse, TicketPassItem } from '@/types/api';
 import { formatEventDate } from '@/lib/utils';
+import { ConfirmationLoader } from '@/components/ui/Skeletons';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -18,9 +19,7 @@ import {
   Check,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
   Mail,
-  Loader2,
   MessageCircle,
 } from 'lucide-react';
 
@@ -123,37 +122,16 @@ function ConfirmationContent() {
     window.print();
   };
 
-  // State 1: Verifying with Paystack Skeleton
+  // State 1: Verifying with Paystack
   if (isLoading) {
-    return (
-      <div className="container" style={{ padding: '90px 20px', maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
-        <div className="glass-card" style={{ padding: '48px 24px', borderRadius: '24px' }}>
-          <div className="verify-spinner-wrap">
-            <Loader2 size={48} className="spin-animation" color="var(--primary)" />
-            <ShieldCheck size={24} className="shield-overlay" color="#10B981" />
-          </div>
-
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginTop: '24px', marginBottom: '8px' }}>
-            Confirming your payment and generating tickets...
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '420px', margin: '0 auto' }}>
-            Please wait while we confirm your Paystack transaction and issue your entrance passes.
-          </p>
-
-          <div className="reference-tag" style={{ marginTop: '24px' }}>
-            <span>Reference:</span>
-            <code>{reference || 'Loading...'}</code>
-          </div>
-        </div>
-      </div>
-    );
+    return <ConfirmationLoader reference={reference} />;
   }
 
   // State 2: Error State (400 Bad Request or Failed Verification)
   if (error || !data || !data.isSuccess) {
     return (
       <div className="container" style={{ padding: '80px 20px', maxWidth: '680px', margin: '0 auto' }}>
-        <div className="glass-card error-card" style={{ padding: '40px 28px', borderRadius: '24px', textAlign: 'center' }}>
+        <div className="glass-card-static error-card" style={{ padding: '40px 28px', borderRadius: '24px', textAlign: 'center' }}>
           <div className="error-icon-box">
             <AlertTriangle size={36} color="#EF4444" />
           </div>
@@ -211,7 +189,7 @@ function ConfirmationContent() {
   return (
     <div className="container confirmation-page" style={{ paddingTop: '32px', paddingBottom: '90px', maxWidth: '820px' }}>
       {/* Printable Confirmation Card */}
-      <div className="glass-card confirmation-card printable-ticket-area">
+      <div className="glass-card-static confirmation-card printable-ticket-area">
         {/* Success Banner */}
         <div className="success-banner">
           <div className="success-icon-bubble">
@@ -796,14 +774,7 @@ function ConfirmationContent() {
 
 export default function TicketConfirmationPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
-          <Loader2 size={40} className="spin-animation" color="var(--primary)" />
-          <div style={{ marginTop: '16px', color: 'var(--text-muted)' }}>Loading confirmation...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<ConfirmationLoader />}>
       <ConfirmationContent />
     </Suspense>
   );

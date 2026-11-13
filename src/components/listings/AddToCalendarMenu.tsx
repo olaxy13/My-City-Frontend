@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Download, ExternalLink, ChevronDown } from 'lucide-react';
+import { Calendar, Download, ExternalLink, ChevronDown, Mail } from 'lucide-react';
 import { getGoogleCalendarUrl, getOutlookCalendarUrl, downloadIcsFile } from '@/lib/utils';
 
 interface AddToCalendarMenuProps {
@@ -98,7 +98,7 @@ export default function AddToCalendarMenu({
             minWidth: '240px',
             background: 'var(--bg-card)',
             border: '1px solid var(--border-light)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '8px',
             boxShadow: '0 16px 36px rgba(0, 0, 0, 0.45)',
             backdropFilter: 'blur(20px)',
@@ -108,7 +108,7 @@ export default function AddToCalendarMenu({
           <div
             style={{
               padding: '6px 12px 8px 12px',
-              fontSize: '0.72rem',
+              fontSize: 'var(--text-xs)',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -126,23 +126,21 @@ export default function AddToCalendarMenu({
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setIsOpen(false)}
+            className="menu-item"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              transition: 'background 0.15s ease',
               textDecoration: 'none',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.1rem' }}>📅</span>
+              <Calendar size={16} color="var(--primary)" />
               <span>Google Calendar</span>
             </div>
             <ExternalLink size={14} color="var(--text-muted)" />
@@ -154,23 +152,21 @@ export default function AddToCalendarMenu({
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setIsOpen(false)}
+            className="menu-item"
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              transition: 'background 0.15s ease',
               textDecoration: 'none',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.1rem' }}>📧</span>
+              <Mail size={16} color="var(--primary)" />
               <span>Outlook / Office 365</span>
             </div>
             <ExternalLink size={14} color="var(--text-muted)" />
@@ -180,30 +176,27 @@ export default function AddToCalendarMenu({
           <button
             type="button"
             onClick={handleDownloadIcs}
+            className="menu-item"
             style={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '10px 12px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               color: 'var(--text-primary)',
-              background: 'transparent',
               border: 'none',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'background 0.15s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.1rem' }}>🍏</span>
+              <Download size={16} color="var(--primary)" />
               <div>
                 <div>Apple / iCal (.ics)</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 400 }}>
                   Works with iOS, Android & Desktop
                 </div>
               </div>

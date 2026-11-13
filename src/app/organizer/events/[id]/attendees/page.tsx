@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { api, ApiError } from '@/lib/api-client';
@@ -8,34 +8,47 @@ import { OrganizerAttendee } from '@/types/api';
 import OrganizerGuard from '@/components/organizer/OrganizerGuard';
 import OrganizerNav from '@/components/organizer/OrganizerNav';
 import AttendeeTable from '@/components/organizer/AttendeeTable';
-import { ArrowLeft, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/Skeletons';
+import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
+import { ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function OrganizerAttendeesPage() {
   const params = useParams();
   const id = params?.id as string;
+  const { isAuthenticated, isLoading: isAuthLoading } = useOrganizerAuth();
 
   const [attendees, setAttendees] = useState<OrganizerAttendee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const fetchAttendees = async () => {
     if (!id) return;
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
       const data = await api.getOrganizerAttendees(id);
+      if (requestId !== requestIdRef.current) return;
       setAttendees(data || []);
     } catch (err: any) {
+      if (requestId !== requestIdRef.current) return;
       setError(err?.message || 'Failed to load attendees list. Please try again.');
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+        setHasLoaded(true);
+      }
     }
   };
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
+    setHasLoaded(false);
     fetchAttendees();
-  }, [id]);
+  }, [id, isAuthLoading, isAuthenticated]);
 
   const handleExportCSV = async () => {
     if (!id) return;
@@ -116,16 +129,14 @@ export default function OrganizerAttendeesPage() {
                 cursor: 'pointer',
               }}
             >
-              <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={13} className={isLoading ? 'spin-animation' : ''} />
               <span>Refresh</span>
             </button>
           </div>
 
-          {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
-              <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
-          ) : error ? (
+          {(isLoading || !hasLoaded) && attendees.length === 0 && !error ? (
+            <TableSkeleton rows={8} />
+          ) : error && attendees.length === 0 && hasLoaded ? (
             <div
               className="glass-card-static"
               style={{
@@ -155,25 +166,22 @@ export default function OrganizerAttendeesPage() {
               </button>
             </div>
           ) : (
-            <AttendeeTable
-              attendees={attendees}
-              onExport={handleExportCSV}
-              isExporting={isExporting}
-            />
+            <div
+              style={{
+                opacity: isLoading ? 0.55 : 1,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: isLoading ? 'none' : 'auto',
+              }}
+            >
+              <AttendeeTable
+                attendees={attendees}
+                onExport={handleExportCSV}
+                isExporting={isExporting}
+              />
+            </div>
           )}
         </main>
       </div>
-
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </OrganizerGuard>
   );
 }

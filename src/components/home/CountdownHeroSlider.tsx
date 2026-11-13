@@ -1,78 +1,63 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CountdownSliderItem } from '@/types/api';
-import { CATEGORY_CONFIG, formatEventDate, formatEventTime } from '@/lib/utils';
-import CountdownBadge from '../listings/CountdownBadge';
-import AddToCalendarMenu from '../listings/AddToCalendarMenu';
-import { useCity } from '@/context/CityContext';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  MapPin,
-  ExternalLink,
-  Sparkles,
-  Ticket,
-} from 'lucide-react';
+import { CATEGORY_CONFIG, calculateCountdown, formatEventDate, formatEventTime } from '@/lib/utils';
+import { Bone } from '@/components/ui/Skeletons';
+import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Clock, Plus, Sparkles } from 'lucide-react';
 
 interface CountdownHeroSliderProps {
   items?: CountdownSliderItem[];
   isLoading?: boolean;
 }
 
+const CARD_HEIGHT = 400;
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200';
+
+/** "1d 11h", "3h 20m", "12m", or "Happening now". */
+function startsIn(dateStr: string) {
+  const t = calculateCountdown(dateStr);
+  if (t.isPast) return 'Happening now';
+  if (t.days > 0) return `Starts in ${t.days}d ${t.hours}h`;
+  if (t.hours > 0) return `Starts in ${t.hours}h ${t.minutes}m`;
+  return `Starts in ${Math.max(t.minutes, 1)}m`;
+}
+
+/** Re-renders every 30s so the "starts in" text stays current without a ticking clock. */
+function useMinuteTick() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+}
+
+/** Compact card showing the next upcoming events one at a time. */
 export default function CountdownHeroSlider({ items = [], isLoading = false }: CountdownHeroSliderProps) {
-  const { currentCity } = useCity();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  useMinuteTick();
 
   const safeItems = Array.isArray(items) ? items : [];
   const total = safeItems.length;
 
-  // Auto-slide effect (5000ms) with pause on hover
+  // Auto-advance every 6s, paused while hovered or focused
   useEffect(() => {
     if (total <= 1 || isPaused) return;
-
-    timerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % total);
-    }, 5000);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    const id = setInterval(() => setCurrentIndex((i) => (i + 1) % total), 6000);
+    return () => clearInterval(id);
   }, [total, isPaused]);
-
-  // Bound index safely
-  useEffect(() => {
-    if (currentIndex >= total && total > 0) {
-      setCurrentIndex(0);
-    }
-  }, [currentIndex, total]);
 
   if (isLoading) {
     return (
       <div
-        className="glass-card-static"
-        style={{
-          minHeight: '420px',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: '24px',
-          background: 'var(--bg-secondary)',
-        }}
+        role="status"
+        aria-busy="true"
+        aria-label="Loading upcoming events"
+        style={{ height: CARD_HEIGHT, borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}
       >
-        <div style={{ textAlign: 'center', padding: '24px' }}>
-          <Sparkles size={36} color="var(--primary)" className="glow-animation" style={{ marginBottom: '12px' }} />
-          <div style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>
-            Curating upcoming {currentCity || 'city'} events...
-          </div>
-        </div>
+        <Bone height="100%" radius="0" />
       </div>
     );
   }
@@ -80,337 +65,249 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
   if (total === 0) {
     return (
       <div
-        className="glass-card-static"
         style={{
-          padding: '60px 20px',
+          minHeight: CARD_HEIGHT * 0.75,
+          borderRadius: 'var(--radius-lg)',
+          border: '1.5px dashed var(--border-color)',
+          background: 'var(--bg-card)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           textAlign: 'center',
-          borderRadius: '24px',
-          background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.08), rgba(245, 158, 11, 0.04))',
+          padding: '32px 24px',
         }}
       >
-        <Sparkles size={40} color="var(--primary)" style={{ marginBottom: '16px' }} />
-        <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>No Upcoming Events Right Now</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
-          Be the first to host or promote an exciting event in {currentCity || 'Lagos'}!
+        <div
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '16px',
+            color: '#fff',
+            background: 'linear-gradient(135deg, var(--primary), var(--accent-amber))',
+            boxShadow: '0 0 0 7px rgba(255, 90, 54, 0.12), 0 10px 26px rgba(255, 90, 54, 0.3)',
+          }}
+        >
+          <Sparkles size={26} aria-hidden />
+        </div>
+        <h2 style={{ fontSize: 'var(--text-lg)', marginBottom: '6px' }}>No upcoming events yet</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: '18px', maxWidth: 300 }}>
+          Hosting something? Be the first to put it on the map.
         </p>
         <Link href="/submit" className="btn btn-primary">
-          + Submit Event Listing
+          <Plus size={16} aria-hidden />
+          <span>Submit an event</span>
         </Link>
       </div>
     );
   }
 
-  const safeIndex = (currentIndex % total + total) % total;
-  const current = safeItems[safeIndex];
+  const index = currentIndex % total;
+  const current = safeItems[index];
+  const category = current.category ? CATEGORY_CONFIG[current.category] : null;
+  const categoryLabel = category?.label || current.categoryLabel || 'Event';
+  const href = `/listings/${current.id}`;
 
-  if (!current) {
-    return null;
-  }
-
-  const catConfig = (current.category ? CATEGORY_CONFIG[current.category] : null) || {
-    label: current.categoryLabel || current.category || 'Event',
-    color: '#FF5A36',
-    bgGradient: 'linear-gradient(135deg, #FF5A36, #FF833E)',
-    glowColor: 'rgba(255, 90, 54, 0.4)',
-    iconName: 'Sparkles',
-  };
-
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % total);
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + total) % total);
+  const go = (delta: number) => setCurrentIndex((i) => (i + delta + total) % total);
 
   return (
     <div
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Upcoming events"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
       style={{
         position: 'relative',
-        width: '100%',
-        minHeight: '480px',
-        borderRadius: '24px',
+        height: CARD_HEIGHT,
+        borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
-        boxShadow: 'var(--hero-shadow)',
+        boxShadow: '0 18px 40px rgba(0, 0, 0, 0.28)',
+        color: '#fff',
       }}
     >
-      {/* Background Image with Gradient Overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${current.thumbnailUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1400'})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          transition: 'background-image 0.6s ease-in-out',
-        }}
-      >
-        {/* Darkening / Tinting Gradient */}
+      {/* Every event's photo is stacked; the current one fades in over the others */}
+      {safeItems.map((item, i) => (
         <div
+          key={item.id}
+          aria-hidden
+          className="hero-slide-photo"
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(10, 13, 20, 0.45) 0%, rgba(10, 13, 20, 0.88) 65%, #0a0d14 100%)',
+            backgroundImage: `url(${item.thumbnailUrl || FALLBACK_IMAGE})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: i === index ? 1 : 0,
+            transform: i === index ? 'scale(1)' : 'scale(1.04)',
           }}
         />
-      </div>
-
-      {/* Decorative Glow Orb */}
+      ))}
       <div
+        aria-hidden
         style={{
           position: 'absolute',
-          top: '-20%',
-          right: '-10%',
-          width: '450px',
-          height: '450px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255, 90, 54, 0.28) 0%, rgba(0,0,0,0) 70%)',
-          filter: 'blur(40px)',
-          pointerEvents: 'none',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(10,13,20,0.05) 25%, rgba(10,13,20,0.7) 58%, rgba(10,13,20,0.95) 100%)',
         }}
       />
 
-      {/* Foreground Content Container */}
+      {/* Top: label + arrows */}
       <div
         style={{
-          position: 'relative',
-          zIndex: 10,
-          padding: 'clamp(20px, 4vw, 48px)',
+          position: 'absolute',
+          top: 14,
+          left: 14,
+          right: 14,
           display: 'flex',
-          flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: '480px',
-          height: '100%',
+          alignItems: 'center',
         }}
       >
-        {/* Top Row: Category Tag & Location */}
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '5px 12px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 700,
+            letterSpacing: '0.03em',
+            background: 'rgba(10, 13, 20, 0.6)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{ width: 8, height: 8, borderRadius: '50%', background: category?.color || 'var(--primary)' }}
+          />
+          {categoryLabel}
+        </span>
+
+        {total > 1 && (
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { label: 'Previous event', Icon: ChevronLeft, delta: -1 },
+              { label: 'Next event', Icon: ChevronRight, delta: 1 },
+            ].map(({ label, Icon, delta }) => (
+              <button
+                key={label}
+                type="button"
+                aria-label={label}
+                onClick={() => go(delta)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  background: 'rgba(10, 13, 20, 0.6)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Icon size={16} aria-hidden />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom: details and one action */}
+      <div
+        aria-live={isPaused ? 'polite' : 'off'}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '20px 20px 18px' }}
+      >
+        {/* Re-keyed per event so the text fades up with the new photo */}
+        <div key={current.id} className="hero-slide-text">
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '12px',
+            gap: '6px',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.8)',
+            marginBottom: '6px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                borderRadius: '100px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                color: '#ffffff',
-                background: catConfig.bgGradient,
-                boxShadow: '0 4px 14px rgba(255, 90, 54, 0.35)',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              <Sparkles size={13} />
-              <span>{catConfig.label}</span>
-            </span>
-
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '6px 12px',
-                borderRadius: '100px',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'rgba(255, 255, 255, 0.85)',
-                background: 'rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
-              <MapPin size={13} color="var(--primary)" />
-              <span>{current.neighborhood || current.city}</span>
-            </span>
-          </div>
-
-          {/* Slide Progress Counter */}
-          <div
-            style={{
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: 'rgba(255, 255, 255, 0.75)',
-              background: 'rgba(0,0,0,0.4)',
-              padding: '4px 12px',
-              borderRadius: '20px',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {safeIndex + 1} / {total}
-          </div>
+          <Calendar size={14} aria-hidden />
+          <span>
+            {formatEventDate(current.startDateTime)} · {formatEventTime(current.startDateTime)}
+            {current.neighborhood ? ` · ${current.neighborhood}` : ''}
+          </span>
         </div>
 
-        {/* Center: Title & Live Countdown Box */}
-        <div style={{ margin: '30px 0' }}>
-          <div
+        <h2
+          style={{
+            fontSize: 'clamp(1.35rem, 2.4vw, 1.75rem)',
+            lineHeight: 1.2,
+            marginBottom: '14px',
+            color: '#fff',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {current.title}
+        </h2>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+          <span
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--accent-amber)',
-              fontSize: '0.9rem',
+              fontSize: 'var(--text-sm)',
               fontWeight: 700,
-              marginBottom: '10px',
+              color: 'var(--accent-amber)',
             }}
           >
-            <Calendar size={16} />
-            <span>
-              {formatEventDate(current.startDateTime)} • {formatEventTime(current.startDateTime)}
-            </span>
-          </div>
+            <Clock size={14} aria-hidden />
+            {startsIn(current.startDateTime)}
+          </span>
 
-          <h1
-            style={{
-              fontSize: 'clamp(1.7rem, 3.8vw, 2.7rem)',
-              color: '#ffffff',
-              lineHeight: 1.2,
-              marginBottom: '16px',
-              textShadow: '0 4px 15px rgba(0,0,0,0.6)',
-            }}
-          >
-            {current.title}
-          </h1>
-
-          {/* Large Countdown Clock */}
-          <div
-            style={{
-              background: 'rgba(10, 13, 20, 0.7)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              display: 'inline-block',
-              maxWidth: '100%',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            }}
-          >
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              ⚡ Live Countdown to Event
-            </div>
-            <CountdownBadge targetDate={current.startDateTime} size="lg" />
-          </div>
+          <Link href={href} className="btn btn-primary" style={{ padding: '9px 16px', fontSize: 'var(--text-sm)' }}>
+            <span>View event</span>
+            <ArrowRight size={15} aria-hidden />
+          </Link>
         </div>
 
-        {/* Bottom Row: Actions & Navigation Controls */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '16px',
-          }}
-        >
-          {/* Action CTAs */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-            {current.externalLink ? (
-              <a
-                href={current.externalLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-                style={{ padding: '10px 20px', fontSize: '0.95rem' }}
-              >
-                <Ticket size={16} />
-                <span>Get Tickets / Register</span>
-              </a>
-            ) : null}
-
-            <Link
-              href={`/listings/${current.id}`}
-              className="btn btn-secondary"
-              style={{ padding: '10px 18px', background: 'rgba(255,255,255,0.15)', color: '#ffffff' }}
-            >
-              <span>Full Details</span>
-              <ExternalLink size={15} />
-            </Link>
-
-            {/* Smart Add To Calendar Menu (No Signup Required) */}
-            <AddToCalendarMenu
-              title={current.title}
-              description={current.description || ''}
-              startDateTime={current.startDateTime}
-              endDateTime={current.endDateTime}
-              location={`${current.neighborhood || ''}, ${current.city || currentCity || 'Nigeria'}`}
-              variant="outline"
-            />
-          </div>
-
-          {/* Slider Pagination Controls & Arrows */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Dots */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {safeItems.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  style={{
-                    width: idx === safeIndex ? '28px' : '8px',
-                    height: '8px',
-                    borderRadius: '4px',
-                    background: idx === safeIndex ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
-                    transition: 'all 0.25s ease',
-                    border: 'none',
-                    padding: 0,
-                    cursor: 'pointer',
-                  }}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-
-            {/* Arrows */}
-            {total > 1 && (
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button
-                  onClick={prevSlide}
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s',
-                  }}
-                  aria-label="Previous slide"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s',
-                  }}
-                  aria-label="Next slide"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            )}
-          </div>
         </div>
+
+        {total > 1 && (
+          <div style={{ display: 'flex', gap: '5px', marginTop: '14px' }}>
+            {safeItems.map((item, i) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={`Show event ${i + 1} of ${total}`}
+                aria-current={i === index ? 'true' : undefined}
+                onClick={() => setCurrentIndex(i)}
+                style={{
+                  width: i === index ? 20 : 6,
+                  height: 6,
+                  padding: 0,
+                  borderRadius: 'var(--radius-full)',
+                  background: i === index ? 'var(--primary)' : 'rgba(255,255,255,0.35)',
+                  transition: 'width 0.25s ease',
+                  cursor: 'pointer',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

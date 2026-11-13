@@ -13,6 +13,7 @@ import {
 import OrganizerGuard from '@/components/organizer/OrganizerGuard';
 import OrganizerNav from '@/components/organizer/OrganizerNav';
 import EventStatusBadge from '@/components/organizer/EventStatusBadge';
+import { FormSectionSkeleton } from '@/components/ui/Skeletons';
 import {
   ArrowLeft,
   Lock,
@@ -266,9 +267,7 @@ export default function OrganizerEditListingPage() {
           )}
 
           {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
-              <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-            </div>
+            <FormSectionSkeleton sections={3} />
           ) : (
             <form onSubmit={handleSave}>
               {/* Section 1: Basic Info */}

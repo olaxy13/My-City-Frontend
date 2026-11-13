@@ -9,6 +9,12 @@ import { ListingDetail } from '@/types/api';
 import { CATEGORY_CONFIG } from '@/lib/utils';
 import AdminCommissionSettingsCard from '@/components/admin/AdminCommissionSettingsCard';
 import {
+  AdminListRowSkeleton,
+  EmptyStateFrame,
+  EMPTY_STATE_MIN_HEIGHT,
+  SessionLoader,
+} from '@/components/ui/Skeletons';
+import {
   DollarSign,
   Search,
   Eye,
@@ -26,7 +32,6 @@ import {
   ShieldCheck,
   X,
   Filter,
-  Loader2,
 } from 'lucide-react';
 
 export default function AdminListingsPage() {
@@ -83,14 +88,7 @@ export default function AdminListingsPage() {
   }
 
   if (isAuthLoading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 80px)', background: 'var(--bg-main)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
-          <Loader2 className="spin" size={24} color="var(--primary)" />
-          <span>Verifying admin session...</span>
-        </div>
-      </div>
-    );
+    return <SessionLoader message="Verifying admin session..." />;
   }
 
   if (!isAuthenticated) return null;
@@ -302,17 +300,15 @@ export default function AdminListingsPage() {
 
         {/* Listings Table / Cards */}
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-            Loading event listings...
-          </div>
+          <AdminListRowSkeleton count={6} />
         ) : listings.length === 0 ? (
-          <div className="glass-card-static" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '16px' }}>
-            <CalendarDays size={40} color="var(--text-muted)" style={{ margin: '0 auto 12px auto' }} />
+          <EmptyStateFrame minHeight={EMPTY_STATE_MIN_HEIGHT.adminList} style={{ borderRadius: '16px' }}>
+            <CalendarDays size={40} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
             <h3 style={{ fontSize: '1.1rem', marginBottom: '6px' }}>No listings found</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
               Try searching with a different keyword or toggle filter to "All Listings".
             </p>
-          </div>
+          </EmptyStateFrame>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {listings.map((listing) => {

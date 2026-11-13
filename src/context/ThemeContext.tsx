@@ -12,30 +12,39 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function resolveTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark';
+  try {
+    const saved = localStorage.getItem('city_discovery_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {
+    // ignore storage access errors
+  }
+  const attr = document.documentElement.getAttribute('data-theme');
+  return attr === 'light' ? 'light' : 'dark';
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('city_discovery_theme') as Theme | null;
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      setThemeState(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-    setMounted(true);
+    const resolved = resolveTheme();
+    setThemeState(resolved);
+    document.documentElement.setAttribute('data-theme', resolved);
   }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('city_discovery_theme', newTheme);
+    try {
+      localStorage.setItem('city_discovery_theme', newTheme);
+    } catch {
+      // ignore storage access errors
+    }
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   return (

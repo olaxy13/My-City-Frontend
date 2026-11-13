@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
-import { Loader2, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { SessionLoader } from '@/components/ui/Skeletons';
+import { AlertCircle, RefreshCw, CheckCircle2, Compass } from 'lucide-react';
 import Link from 'next/link';
 
 function VerifyTokenHandler() {
@@ -71,15 +72,22 @@ function VerifyTokenHandler() {
         }}
       >
         {status === 'verifying' && (
-          <div>
-            <Loader2
-              size={40}
+          <div role="status" aria-busy="true" aria-live="polite">
+            <div
               style={{
-                color: 'var(--primary, #ff5a36)',
+                width: 64,
+                height: 64,
+                borderRadius: 18,
                 margin: '0 auto 1.25rem',
-                animation: 'spin 1s linear infinite',
+                background: 'linear-gradient(135deg, rgba(255, 90, 54, 0.2), rgba(245, 158, 11, 0.12))',
+                border: '1px solid var(--border-glow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <Compass size={28} color="var(--primary)" className="spin-animation" />
+            </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary, #f8fafc)', margin: '0 0 0.5rem' }}>
               Verifying your access...
             </h2>
@@ -166,39 +174,14 @@ function VerifyTokenHandler() {
           </div>
         )}
       </div>
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }
 
 export default function OrganizerVerifyPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            minHeight: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            background: 'var(--bg-main, #0a0d14)',
-          }}
-        >
-          <Loader2 size={36} style={{ color: 'var(--primary, #ff5a36)', animation: 'spin 1s linear infinite' }} />
-        </div>
-      }
-    >
+    <Suspense fallback={<SessionLoader message="Opening magic link..." />}>
       <VerifyTokenHandler />
     </Suspense>
   );
 }
-

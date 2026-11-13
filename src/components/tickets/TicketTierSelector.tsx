@@ -65,7 +65,7 @@ export default function TicketTierSelector({
   };
 
   return (
-    <div className="ticket-tier-container glass-card">
+    <div className="ticket-tier-container glass-card-static">
       {/* Header */}
       <div className="ticket-header">
         <div className="ticket-header-title">

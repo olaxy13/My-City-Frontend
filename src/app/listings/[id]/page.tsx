@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
@@ -17,6 +17,7 @@ import CountdownBadge from '@/components/listings/CountdownBadge';
 import AddToCalendarMenu from '@/components/listings/AddToCalendarMenu';
 import EventPassPreviewCard from '@/components/tickets/EventPassPreviewCard';
 import CheckoutModal from '@/components/tickets/CheckoutModal';
+import { ListingDetailSkeleton } from '@/components/ui/Skeletons';
 import {
   MapPin,
   MessageCircle,
@@ -30,12 +31,12 @@ import {
   Phone,
   Mail,
   ChevronLeft,
-  Sparkles,
   FileText,
   Utensils,
   Building2,
   Check,
   Ticket,
+  Repeat,
 } from 'lucide-react';
 
 export default function ListingDetailPage() {
@@ -45,36 +46,41 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [activeImage, setActiveImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
   const [copiedShare, setCopiedShare] = useState<boolean>(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
   const [selectedTierForModal, setSelectedTierForModal] = useState<TicketTier | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    if (!id) return;
+    const requestId = ++requestIdRef.current;
+    setIsLoading(true);
+    setHasLoaded(false);
+    setListing(null);
+
     async function loadListing() {
-      if (!id) return;
-      setIsLoading(true);
       try {
         const data = await api.getListingById(id);
+        if (requestId !== requestIdRef.current) return;
         setListing(data);
         setActiveImage(data.thumbnailUrl);
       } catch (err) {
         console.error('Failed to load listing:', err);
+        if (requestId !== requestIdRef.current) return;
+        setListing(null);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+          setHasLoaded(true);
+        }
       }
     }
     loadListing();
   }, [id]);
 
-  if (isLoading) {
-    return (
-      <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
-        <Sparkles size={40} color="var(--primary)" className="glow-animation" />
-        <div style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>
-          Loading place details...
-        </div>
-      </div>
-    );
+  if (isLoading || !hasLoaded) {
+    return <ListingDetailSkeleton />;
   }
 
   if (!listing) {
@@ -171,7 +177,7 @@ export default function ListingDetailPage() {
             gap: '6px',
             color: 'var(--text-secondary)',
             fontWeight: 600,
-            fontSize: '0.9rem',
+            fontSize: 'var(--text-base)',
           }}
         >
           <ChevronLeft size={18} />
@@ -206,7 +212,7 @@ export default function ListingDetailPage() {
               position: 'relative',
               width: '100%',
               height: '440px',
-              borderRadius: '24px',
+              borderRadius: 'var(--radius-xl)',
               overflow: 'hidden',
               marginBottom: '16px',
             }}
@@ -237,7 +243,7 @@ export default function ListingDetailPage() {
                 style={{
                   background: catConfig.color,
                   color: '#fff',
-                  fontSize: '0.8rem',
+                  fontSize: 'var(--text-sm)',
                   padding: '6px 12px',
                 }}
               >
@@ -248,7 +254,7 @@ export default function ListingDetailPage() {
                   className="glass-pill badge-cac"
                   style={{
                     padding: '4px 10px',
-                    fontSize: '0.78rem',
+                    fontSize: 'var(--text-xs)',
                     background: 'rgba(0,0,0,0.7)',
                     backdropFilter: 'blur(8px)',
                   }}
@@ -270,7 +276,7 @@ export default function ListingDetailPage() {
                   style={{
                     width: '80px',
                     height: '80px',
-                    borderRadius: '14px',
+                    borderRadius: 'var(--radius-md)',
                     overflow: 'hidden',
                     flexShrink: 0,
                     border: activeImage === img ? '2.5px solid var(--primary)' : '1px solid var(--border-color)',
@@ -299,7 +305,7 @@ export default function ListingDetailPage() {
           {/* Live Countdown Banner (If Event) */}
           {isEvent && listing.eventDetails?.startDateTime && (
             <div
-              className="glass-card"
+              className="glass-card-static"
               style={{
                 marginTop: '24px',
                 padding: '24px',
@@ -308,7 +314,7 @@ export default function ListingDetailPage() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: 800, fontSize: 'var(--text-base)' }}>
                   <Clock size={18} />
                   <span>EVENT COUNTDOWN</span>
                 </div>
@@ -317,7 +323,7 @@ export default function ListingDetailPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-outline"
-                  style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                  style={{ padding: '6px 12px', fontSize: 'var(--text-sm)' }}
                 >
                   <Calendar size={14} />
                   <span>Add to Google Calendar</span>
@@ -337,7 +343,7 @@ export default function ListingDetailPage() {
               alignItems: 'center',
               gap: '6px',
               color: 'var(--primary)',
-              fontSize: '0.9rem',
+              fontSize: 'var(--text-base)',
               fontWeight: 700,
               marginBottom: '10px',
             }}
@@ -357,7 +363,7 @@ export default function ListingDetailPage() {
             className="glass-card-static"
             style={{
               padding: '20px',
-              borderRadius: '16px',
+              borderRadius: 'var(--radius-lg)',
               marginBottom: '24px',
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
@@ -367,18 +373,18 @@ export default function ListingDetailPage() {
             {isEvent && listing.eventDetails && (
               <>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Date & Time
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: '4px' }}>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', marginTop: '4px' }}>
                     {formatEventDate(listing.eventDetails.startDateTime)}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                     {formatEventTime(listing.eventDetails.startDateTime)}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
                     Save Event
                   </div>
                   <AddToCalendarMenu
@@ -388,16 +394,17 @@ export default function ListingDetailPage() {
                     endDateTime={listing.eventDetails.endDateTime}
                     location={`${listing.address || listing.neighborhood || ''}, ${listing.city || 'Abeokuta'}`}
                     variant="secondary"
-                    style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                    style={{ fontSize: 'var(--text-sm)', padding: '6px 12px' }}
                   />
                 </div>
                 {listing.eventDetails.isRecurring && (
                   <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       Schedule
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--accent-amber)', marginTop: '4px' }}>
-                      🔁 Recurring Event
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: 'var(--text-base)', color: 'var(--accent-amber)', marginTop: '4px' }}>
+                      <Repeat size={15} />
+                      Recurring Event
                     </div>
                   </div>
                 )}
@@ -407,27 +414,27 @@ export default function ListingDetailPage() {
             {isRestaurant && listing.restaurantDetails && (
               <>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Cuisine
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: '4px' }}>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', marginTop: '4px' }}>
                     {listing.restaurantDetails.cuisineType}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Price Range
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--accent-amber)', marginTop: '4px' }}>
+                  <div style={{ fontWeight: 800, fontSize: 'var(--text-md)', color: 'var(--accent-amber)', marginTop: '4px' }}>
                     {listing.restaurantDetails.priceRange || 'Moderate ($$)'}
                   </div>
                 </div>
                 {listing.restaurantDetails.operatingHours && (
                   <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       Hours
                     </div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginTop: '4px' }}>
                       {listing.restaurantDetails.operatingHours}
                     </div>
                   </div>
@@ -438,19 +445,19 @@ export default function ListingDetailPage() {
             {isFacility && listing.facilityDetails && (
               <>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Facility Type
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: '4px' }}>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--text-base)', marginTop: '4px' }}>
                     {listing.facilityDetails.facilityCategory}
                   </div>
                 </div>
                 {listing.facilityDetails.emergencyContact && (
                   <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       Emergency Hotline
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--accent-emerald)', marginTop: '4px' }}>
+                    <div style={{ fontWeight: 800, fontSize: 'var(--text-base)', color: 'var(--accent-emerald)', marginTop: '4px' }}>
                       {listing.facilityDetails.emergencyContact}
                     </div>
                   </div>
@@ -461,8 +468,8 @@ export default function ListingDetailPage() {
 
           {/* Description */}
           <div style={{ marginBottom: '30px' }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>About this place</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '0.96rem', whiteSpace: 'pre-line' }}>
+            <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: '10px' }}>About this place</h3>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 'var(--text-base)', whiteSpace: 'pre-line' }}>
               {listing.description}
             </p>
           </div>
@@ -473,7 +480,7 @@ export default function ListingDetailPage() {
               className="glass-card-static"
               style={{
                 padding: '16px 20px',
-                borderRadius: '16px',
+                borderRadius: 'var(--radius-lg)',
                 marginBottom: '30px',
                 display: 'flex',
                 alignItems: 'center',
@@ -486,7 +493,7 @@ export default function ListingDetailPage() {
                   style={{
                     width: '38px',
                     height: '38px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--radius-md)',
                     background: 'rgba(255, 90, 54, 0.15)',
                     display: 'flex',
                     alignItems: 'center',
@@ -497,10 +504,10 @@ export default function ListingDetailPage() {
                   <MapPin size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Full Address
                   </div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {listing.address}
                   </div>
                 </div>
@@ -511,7 +518,7 @@ export default function ListingDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-outline"
-                style={{ padding: '8px 14px', fontSize: '0.85rem', flexShrink: 0 }}
+                style={{ padding: '8px 14px', fontSize: 'var(--text-sm)', flexShrink: 0 }}
               >
                 <Navigation size={14} />
                 <span>Get Directions</span>
@@ -537,7 +544,7 @@ export default function ListingDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-whatsapp"
-                style={{ padding: '14px 20px', fontSize: '1rem', width: '100%' }}
+                style={{ padding: '14px 20px', fontSize: 'var(--text-md)', width: '100%' }}
               >
                 <MessageCircle size={20} />
                 <span>Chat via WhatsApp ({listing.contactPhone})</span>
@@ -551,7 +558,7 @@ export default function ListingDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
-                style={{ padding: '14px 20px', fontSize: '1rem', width: '100%' }}
+                style={{ padding: '14px 20px', fontSize: 'var(--text-md)', width: '100%' }}
               >
                 <ExternalLink size={20} />
                 <span>
@@ -573,7 +580,7 @@ export default function ListingDetailPage() {
                 endDateTime={listing.eventDetails.endDateTime}
                 location={`${listing.address || listing.neighborhood || ''}, ${listing.city || 'Abeokuta'}`}
                 variant="secondary"
-                style={{ width: '100%', justifyContent: 'center', padding: '13px 20px', fontSize: '0.95rem' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '13px 20px', fontSize: 'var(--text-base)' }}
               />
             )}
 
@@ -583,7 +590,7 @@ export default function ListingDetailPage() {
                 <a
                   href={`tel:${listing.contactPhone}`}
                   className="btn btn-secondary"
-                  style={{ padding: '10px', fontSize: '0.88rem' }}
+                  style={{ padding: '10px', fontSize: 'var(--text-sm)' }}
                 >
                   <Phone size={15} />
                   <span>Call Direct</span>
@@ -593,7 +600,7 @@ export default function ListingDetailPage() {
                 <a
                   href={`mailto:${listing.contactEmail}`}
                   className="btn btn-secondary"
-                  style={{ padding: '10px', fontSize: '0.88rem' }}
+                  style={{ padding: '10px', fontSize: 'var(--text-sm)' }}
                 >
                   <Mail size={15} />
                   <span>Send Email</span>
@@ -608,7 +615,7 @@ export default function ListingDetailPage() {
               style={{
                 marginTop: '30px',
                 padding: '16px',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(16, 185, 129, 0.08)',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
                 display: 'flex',
@@ -617,7 +624,7 @@ export default function ListingDetailPage() {
               }}
             >
               <ShieldCheck size={24} color="#10B981" />
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                 <strong style={{ color: 'var(--text-primary)' }}>Verified Community Partner</strong>: This organization has submitted official registration records (CAC/License) verified by City Discovery moderators.
               </div>
             </div>
@@ -666,9 +673,9 @@ export default function ListingDetailPage() {
         .get-ticket-flyer-btn {
           width: 100%;
           padding: 16px 24px;
-          font-size: 1.15rem;
+          font-size: var(--text-lg);
           font-weight: 800;
-          border-radius: 16px;
+          border-radius: var(--radius-lg);
           margin-top: 18px;
           display: flex;
           align-items: center;
@@ -721,16 +728,16 @@ export default function ListingDetailPage() {
           }
 
           .mobile-bar-price {
-            font-size: 1.1rem;
+            font-size: var(--text-lg);
             color: #10b981;
             font-weight: 900;
           }
 
           .mobile-buy-btn {
             padding: 10px 20px;
-            font-size: 0.92rem;
+            font-size: var(--text-base);
             font-weight: 800;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             gap: 8px;

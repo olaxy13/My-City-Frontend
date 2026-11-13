@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useOrganizerAuth } from '@/context/OrganizerAuthContext';
-import { Compass, Calendar, Settings, LogOut, ArrowLeft, User } from 'lucide-react';
+import { Compass, Calendar, Settings, LogOut, ArrowLeft, User, QrCode } from 'lucide-react';
 
 export default function OrganizerNav() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function OrganizerNav() {
 
   const isEventsActive = pathname?.startsWith('/organizer/dashboard') || pathname?.startsWith('/organizer/events');
   const isSettingsActive = pathname?.startsWith('/organizer/settings');
+  const isScannerActive = pathname?.startsWith('/organizer/check-in');
 
   return (
     <header
@@ -128,6 +129,27 @@ export default function OrganizerNav() {
           >
             <Calendar size={15} style={{ color: isEventsActive ? 'var(--primary, #ff5a36)' : 'inherit' }} />
             <span>My Events</span>
+          </Link>
+
+          <Link
+            href="/organizer/check-in"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              padding: '7px 14px',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              color: isScannerActive ? '#fff' : 'var(--text-secondary, #94a3b8)',
+              backgroundColor: isScannerActive ? 'rgba(255, 90, 54, 0.15)' : 'transparent',
+              border: isScannerActive ? '1px solid rgba(255, 90, 54, 0.3)' : '1px solid transparent',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <QrCode size={15} style={{ color: isScannerActive ? 'var(--primary, #ff5a36)' : 'inherit' }} />
+            <span>Gate Scanner</span>
           </Link>
 
           <Link

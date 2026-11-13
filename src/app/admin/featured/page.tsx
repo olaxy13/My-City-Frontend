@@ -8,6 +8,12 @@ import { api } from '@/lib/api-client';
 import { ListingDetail } from '@/types/api';
 import { CATEGORY_CONFIG } from '@/lib/utils';
 import {
+  AdminListRowSkeleton,
+  EmptyStateFrame,
+  EMPTY_STATE_MIN_HEIGHT,
+  SessionLoader,
+} from '@/components/ui/Skeletons';
+import {
   Star,
   ToggleLeft,
   ToggleRight,
@@ -25,7 +31,7 @@ import {
 
 export default function FeaturedAdminPage() {
   const router = useRouter();
-  const { isAuthenticated, admin, logout } = useAuth();
+  const { isAuthenticated, admin, logout, isLoading: isAuthLoading } = useAuth();
 
   const [featuredListings, setFeaturedListings] = useState<ListingDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,14 +39,15 @@ export default function FeaturedAdminPage() {
   const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthLoading && !isAuthenticated) {
       router.push('/admin');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthLoading, isAuthenticated, router]);
 
   useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return;
     loadFeatured();
-  }, []);
+  }, [isAuthLoading, isAuthenticated]);
 
   async function loadFeatured() {
     setIsLoading(true);
@@ -89,6 +96,10 @@ export default function FeaturedAdminPage() {
       console.error('Failed to toggle featured:', err);
     }
   };
+
+  if (isAuthLoading) {
+    return <SessionLoader message="Verifying admin session..." />;
+  }
 
   if (!isAuthenticated) return null;
 
@@ -193,23 +204,30 @@ export default function FeaturedAdminPage() {
           <strong style={{ color: 'var(--accent-amber)' }}>Slider Logic:</strong> Featured (pushed) events appear first in the slider, sorted by soonest upcoming <code>startDateTime</code>. Remaining slots fill automatically with the next upcoming events. Toggle "Featured" off to remove an event from the pushed slots.
         </div>
 
-        {isLoading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
-            <Loader2 size={32} color="var(--primary)" className="glow-animation" />
-          </div>
+        {isLoading && featuredListings.length === 0 ? (
+          <AdminListRowSkeleton count={5} />
         ) : featuredListings.length === 0 ? (
-          <div className="glass-card-static" style={{ padding: '60px', textAlign: 'center', borderRadius: '20px' }}>
-            <Star size={40} color="var(--text-muted)" style={{ margin: '0 auto 14px auto' }} />
+          <EmptyStateFrame minHeight={EMPTY_STATE_MIN_HEIGHT.adminList} style={{ borderRadius: '20px' }}>
+            <Star size={40} color="var(--text-muted)" style={{ marginBottom: '14px' }} />
             <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Pushed Featured Events</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', maxWidth: 480 }}>
               The slider populates automatically with the soonest upcoming events. Use the Moderation page to push specific events to the top of the slider.
             </p>
             <Link href="/admin/moderation" className="btn btn-primary">
               Go to Moderation Queue
             </Link>
-          </div>
+          </EmptyStateFrame>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              opacity: isLoading ? 0.55 : 1,
+              transition: 'opacity 0.2s ease',
+              pointerEvents: isLoading ? 'none' : 'auto',
+            }}
+          >
             {featuredListings.map((listing, idx) => {
               const catConfig = CATEGORY_CONFIG[listing.category] || { label: listing.category, color: '#FF5A36' };
               return (

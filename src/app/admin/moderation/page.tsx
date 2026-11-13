@@ -9,6 +9,13 @@ import { ListingDetail, ListingStatus, ListingType } from '@/types/api';
 import { CATEGORY_CONFIG, formatEventDate, formatEventTime } from '@/lib/utils';
 import AdminCommissionSettingsCard from '@/components/admin/AdminCommissionSettingsCard';
 import {
+  AdminListRowSkeleton,
+  DrawerSkeleton,
+  EmptyStateFrame,
+  EMPTY_STATE_MIN_HEIGHT,
+  SessionLoader,
+} from '@/components/ui/Skeletons';
+import {
   ShieldAlert,
   Clock,
   CheckCircle,
@@ -255,14 +262,7 @@ export default function ModerationPage() {
   };
 
   if (isAuthLoading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 76px)', background: 'var(--bg-main)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1' }}>
-          <Loader2 className="spin" size={24} color="var(--primary)" />
-          <span>Verifying admin session...</span>
-        </div>
-      </div>
-    );
+    return <SessionLoader message="Verifying admin session..." />;
   }
 
   if (!isAuthenticated) return null;
@@ -450,8 +450,13 @@ export default function ModerationPage() {
               <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
             </div>
 
-            <button onClick={() => loadListings()} className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
-              <RefreshCw size={15} />
+            <button
+              onClick={() => loadListings()}
+              disabled={isLoading}
+              className="btn btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+            >
+              <RefreshCw size={15} className={isLoading ? 'spin-animation' : ''} />
               <span>Refresh</span>
             </button>
           </div>
@@ -459,19 +464,17 @@ export default function ModerationPage() {
 
         {/* Listings Table */}
         {isLoading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-            <Loader2 size={32} color="var(--primary)" className="glow-animation" />
-          </div>
+          <AdminListRowSkeleton count={6} />
         ) : listings.length === 0 ? (
-          <div className="glass-card-static" style={{ padding: '60px', textAlign: 'center', borderRadius: '20px' }}>
-            <ShieldAlert size={40} color="var(--text-muted)" style={{ margin: '0 auto 14px auto' }} />
+          <EmptyStateFrame minHeight={EMPTY_STATE_MIN_HEIGHT.adminList} style={{ borderRadius: '20px' }}>
+            <ShieldAlert size={40} color="var(--text-muted)" style={{ marginBottom: '14px' }} />
             <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>
               No {TAB_CONFIG[activeTab].label} Listings
             </h3>
-            <p style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
               All caught up! No listings are waiting in this queue.
             </p>
-          </div>
+          </EmptyStateFrame>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {listings.map((listing) => {
@@ -670,10 +673,7 @@ export default function ModerationPage() {
 
           <div style={{ padding: '20px', flex: 1 }}>
             {isDrawerLoading ? (
-              <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                <Loader2 size={28} color="var(--primary)" className="glow-animation" />
-                <div style={{ marginTop: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading full details...</div>
-              </div>
+              <DrawerSkeleton />
             ) : (
               <>
                 {/* Cover Thumbnail */}
@@ -1126,14 +1126,12 @@ export default function ModerationPage() {
                           <img
                             src={img.imageUrl}
                             alt={`Gallery ${idx + 1}`}
+                            className="hover-zoom"
                             style={{
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
-                              transition: 'transform 0.2s ease',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                           />
                         </div>
                       ))}

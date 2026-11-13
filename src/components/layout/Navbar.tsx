@@ -16,9 +16,8 @@ import {
   Menu,
   X,
   Compass,
-  Sparkles,
   Home,
-  Video,
+  ChevronDown,
   QrCode,
 } from 'lucide-react';
 
@@ -65,6 +64,19 @@ export default function Navbar() {
 
   return (
     <header className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+      {/* Brand accent along the bottom edge */}
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -1,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.7) 30%, rgba(245, 158, 11, 0.6) 70%, transparent)',
+          pointerEvents: 'none',
+        }}
+      />
       <div className="container nav-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -98,7 +110,11 @@ export default function Navbar() {
           {/* City Selector Pill */}
           <div ref={dropdownRef} style={{ position: 'relative' }} className="city-pill-wrap">
             <button
+              type="button"
               onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+              aria-haspopup="listbox"
+              aria-expanded={isCityDropdownOpen}
+              aria-label={`City: ${currentCity}. Change city`}
               className="glass-pill"
               style={{
                 display: 'flex',
@@ -112,23 +128,18 @@ export default function Navbar() {
               title="Change active city"
             >
               <span
-                style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  background: '#10B981',
-                  boxShadow: '0 0 6px #10B981',
-                  flexShrink: 0,
-                }}
+                aria-hidden
+                className="live-dot"
+                style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent-emerald)', flexShrink: 0 }}
               />
-              <MapPin size={13} color="var(--primary)" />
-              <span className="city-label" style={{ fontWeight: 700, fontSize: '0.85rem' }}>{currentCity}</span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>▼</span>
+              <MapPin size={14} color="var(--primary)" aria-hidden />
+              <span className="city-label" style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{currentCity}</span>
+              <ChevronDown size={14} color="var(--text-muted)" aria-hidden />
             </button>
 
             {isCityDropdownOpen && (
               <div
-                className="glass-card"
+                className="glass-card-static"
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
@@ -191,8 +202,10 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Global Search Bar (Desktop) */}
+        {/* Global Search Bar (Desktop). Home has its own search in the hero. */}
+        {pathname !== '/' && (
         <form
+          role="search"
           onSubmit={handleSearchSubmit}
           style={{
             display: 'none',
@@ -200,17 +213,20 @@ export default function Navbar() {
             background: 'var(--bg-input)',
             borderRadius: '9999px',
             border: '1.5px solid var(--border-color)',
-            padding: '4px 6px 4px 14px',
+            padding: '4px 4px 4px 16px',
             width: '260px',
             maxWidth: '300px',
             margin: '0 12px',
           }}
-          className="desktop-search"
+          className="desktop-search nav-search"
         >
-          <Search size={15} color="var(--text-muted)" style={{ marginRight: '6px', flexShrink: 0 }} />
+          <label htmlFor="nav-search" className="sr-only">
+            Search events, food and places
+          </label>
           <input
-            type="text"
-            placeholder="Search events, dining..."
+            id="nav-search"
+            type="search"
+            placeholder="Search events, food, places…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -220,67 +236,52 @@ export default function Navbar() {
               color: 'var(--text-primary)',
               fontSize: '0.86rem',
               width: '100%',
+              padding: '6px 0',
             }}
           />
           <button
             type="submit"
+            aria-label="Search"
             style={{
-              background: 'var(--primary)',
-              color: '#fff',
-              borderRadius: '9999px',
-              padding: '5px 12px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
               flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              background: 'linear-gradient(135deg, var(--primary), #ff833e)',
+              boxShadow: '0 3px 10px rgba(255, 90, 54, 0.35)',
+              cursor: 'pointer',
             }}
           >
-            Find
+            <Search size={15} aria-hidden />
           </button>
         </form>
+        )}
 
         {/* Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {/* Navigation Links */}
-          <div style={{ display: 'none', gap: '14px', alignItems: 'center' }} className="desktop-nav">
+          <nav aria-label="Main" style={{ display: 'none', gap: '4px', alignItems: 'center' }} className="desktop-nav">
             <Link
               href="/explore"
-              style={{
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '6px 10px',
-                borderRadius: '8px',
-                transition: 'all 0.2s',
-              }}
+              aria-current={pathname?.startsWith('/explore') ? 'page' : undefined}
               className="nav-link-item"
             >
-              <Sparkles size={15} color="var(--primary)" />
-              <span>Explore All</span>
+              <Compass size={16} aria-hidden />
+              <span>Explore</span>
             </Link>
-
             <Link
               href="/organizer/check-in"
-              style={{
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '6px 10px',
-                borderRadius: '8px',
-                transition: 'all 0.2s',
-              }}
               className="nav-link-item"
-              title="Event Check-in QR Scanner"
+              title="Event check-in QR scanner"
             >
-              <QrCode size={15} color="#10B981" />
+              <QrCode size={16} color="var(--accent-emerald)" aria-hidden />
               <span>Gate Scanner</span>
             </Link>
-          </div>
+          </nav>
 
           {/* Vertical Separator */}
           <span className="desktop-divider" style={{ width: '1px', height: '22px', background: 'var(--border-color)', display: 'none' }} />
@@ -300,10 +301,11 @@ export default function Navbar() {
               color: 'var(--text-primary)',
               flexShrink: 0,
             }}
-            aria-label="Toggle Dark / Light Theme"
+            type="button"
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
-            {theme === 'dark' ? <Sun size={17} color="#F59E0B" /> : <Moon size={17} color="#6366F1" />}
+            {theme === 'dark' ? <Sun size={17} color="#F59E0B" aria-hidden /> : <Moon size={17} color="#6366F1" aria-hidden />}
           </button>
 
           {/* Admin Indicator (only rendered when an admin is actively logged in) */}
@@ -338,8 +340,10 @@ export default function Navbar() {
               padding: '6px',
               color: 'var(--text-primary)',
             }}
+            type="button"
             className="mobile-toggle"
-            aria-label="Toggle menu"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -363,9 +367,26 @@ export default function Navbar() {
           }
         }
 
-        .nav-link-item:hover {
-          background: rgba(255, 90, 54, 0.08) !important;
-          color: var(--text-primary) !important;
+        .nav-search {
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .nav-search:focus-within {
+          border-color: var(--primary) !important;
+          box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .live-dot {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+          animation: livePulse 2.4s ease-out infinite;
+        }
+        @keyframes livePulse {
+          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+          70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .live-dot {
+            animation: none;
+          }
         }
 
         /* Tablet: hide brand subtitle */
@@ -404,7 +425,7 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <div
-          className="glass-card"
+          className="glass-card-static"
           style={{
             padding: '16px',
             margin: '0 12px 12px 12px',
@@ -414,17 +435,18 @@ export default function Navbar() {
             borderRadius: '16px',
           }}
         >
-          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
+          <form role="search" onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
             <input
-              type="text"
+              type="search"
+              aria-label="Search events, food and places"
               placeholder={`Search ${currentCity || 'events, places'}...`}
               className="form-input"
               style={{ fontSize: '0.95rem' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button type="submit" className="btn btn-primary" style={{ padding: '0 14px', flexShrink: 0 }}>
-              <Search size={18} />
+            <button type="submit" className="btn btn-primary" style={{ padding: '0 14px', flexShrink: 0 }} aria-label="Search">
+              <Search size={18} aria-hidden />
             </button>
           </form>
 
@@ -440,10 +462,10 @@ export default function Navbar() {
           <Link
             href="/explore"
             onClick={() => setIsMobileMenuOpen(false)}
-            style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)' }}
           >
-            <Sparkles size={18} color="var(--primary)" />
-            Explore All Categories
+            <Compass size={18} color="var(--primary)" aria-hidden />
+            Explore
           </Link>
 
           <Link
@@ -451,8 +473,8 @@ export default function Navbar() {
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <QrCode size={18} color="#10B981" />
-            Gate Entrance Scanner
+            <QrCode size={18} color="var(--accent-emerald)" aria-hidden />
+            Gate Scanner
           </Link>
 
           <Link
@@ -461,8 +483,8 @@ export default function Navbar() {
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
           >
-            <PlusCircle size={18} />
-            Submit New Listing
+            <PlusCircle size={18} aria-hidden />
+            Submit a listing
           </Link>
         </div>
       )}

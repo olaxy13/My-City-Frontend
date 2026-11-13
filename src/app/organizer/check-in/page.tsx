@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api-client';
+import { SessionLoader } from '@/components/ui/Skeletons';
 import { ListingDetail, CheckInTicketResponse } from '@/types/api';
 import {
   Camera,
@@ -431,7 +432,7 @@ function GateScannerContent() {
   if (!isGateUnlocked) {
     return (
       <div className="container" style={{ padding: '60px 20px', maxWidth: '540px', margin: '0 auto' }}>
-        <div className="glass-card gate-lock-card">
+        <div className="glass-card-static gate-lock-card">
           <div className="lock-icon-bubble">
             <Lock size={32} color="var(--primary)" />
           </div>
@@ -1655,13 +1656,7 @@ function GateScannerContent() {
 
 export default function OrganizerGateCheckInPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="container" style={{ padding: '80px 0', textAlign: 'center', color: '#fff' }}>
-          Loading gate scanner...
-        </div>
-      }
-    >
+    <Suspense fallback={<SessionLoader message="Loading gate scanner..." />}>
       <GateScannerContent />
     </Suspense>
   );
