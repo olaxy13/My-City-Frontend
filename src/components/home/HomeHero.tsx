@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Calendar, CalendarDays, CalendarRange, Search, type LucideIcon } from 'lucide-react';
-import type { CountdownSliderItem } from '@/types/api';
+import type { CountdownSliderItem, ListingDetail } from '@/types/api';
 import { useCity } from '@/context/CityContext';
 import CountdownHeroSlider from './CountdownHeroSlider';
 
@@ -17,10 +17,12 @@ const QUICK_LINKS: { label: string; href: string; Icon: LucideIcon }[] = [
 
 interface HomeHeroProps {
   items: CountdownSliderItem[];
+  /** Fills the event card with popular places when there are no upcoming events. */
+  places?: ListingDetail[];
   isLoading: boolean;
 }
 
-export default function HomeHero({ items, isLoading }: HomeHeroProps) {
+export default function HomeHero({ items, places = [], isLoading }: HomeHeroProps) {
   const { currentCity } = useCity();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -145,7 +147,7 @@ export default function HomeHero({ items, isLoading }: HomeHeroProps) {
 
       {/* Next big event */}
       <div style={{ minWidth: 0 }}>
-        <CountdownHeroSlider items={items} isLoading={isLoading} />
+        <CountdownHeroSlider items={items} places={places} isLoading={isLoading} />
       </div>
     </section>
   );

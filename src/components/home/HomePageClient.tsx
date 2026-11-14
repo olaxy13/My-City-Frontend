@@ -28,6 +28,14 @@ async function loadInBrowser(city: string): Promise<HomeData> {
   };
 }
 
+/** Up to five places with photos (featured first) for the hero when no events are coming up. */
+function popularPlaces(listings: HomeData['cityListings']) {
+  return listings
+    .filter((l) => l.listingType !== 'event' && l.thumbnailUrl)
+    .sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
+    .slice(0, 5);
+}
+
 interface HomePageClientProps {
   /** Data the server already fetched (from its cache), or null if the backend was too slow. */
   initialData: HomeData | null;
@@ -61,7 +69,11 @@ export default function HomePageClient({ initialData }: HomePageClientProps) {
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
       {/* 1. Hero: search, date shortcuts and the next events (intro card until they're ready) */}
-      <HomeHero items={shown?.countdownItems ?? []} isLoading={isLoading} />
+      <HomeHero
+        items={shown?.countdownItems ?? []}
+        places={popularPlaces(shown?.cityListings ?? [])}
+        isLoading={isLoading}
+      />
 
       {/* 2. Busiest neighborhoods */}
       <NeighborhoodSection listings={shown?.cityListings ?? []} city={currentCity} isLoading={isLoading} />
