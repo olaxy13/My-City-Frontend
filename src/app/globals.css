@@ -419,16 +419,15 @@ button {
 /* Listing card for an event that has already happened */
 .listing-card--ended {
   opacity: 0.68;
-  transition: opacity 0.2s ease;
-}
-
-.listing-card--ended:hover,
-.listing-card--ended:focus-visible {
-  opacity: 0.9;
+  cursor: default; /* not a link: ended events can't be opened */
 }
 
 .listing-card--ended .listing-card__photo {
   filter: grayscale(1);
+}
+
+.listing-card--ended .hover-zoom:hover {
+  transform: none; /* no hover zoom: the card isn't clickable */
 }
 
 /*

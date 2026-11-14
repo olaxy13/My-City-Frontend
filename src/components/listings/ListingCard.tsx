@@ -68,19 +68,17 @@ export default function ListingCard({ listing }: ListingCardProps) {
     !!listing.restaurantDetails?.cacNumber ||
     !!listing.facilityDetails?.cacNumber;
 
-  return (
-    <Link
-      href={href}
-      className={ended ? 'glass-card listing-card--ended' : 'glass-card'}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        height: '100%',
-        color: 'inherit',
-        textDecoration: 'none',
-      }}
-    >
+  const cardStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    height: '100%',
+    color: 'inherit',
+    textDecoration: 'none',
+  };
+
+  const content = (
+    <>
       {/* Image: one badge, plus a countdown only when the event is under a week away */}
       <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
         <img
@@ -220,6 +218,25 @@ export default function ListingCard({ listing }: ListingCardProps) {
           )}
         </div>
       </div>
+    </>
+  );
+
+  // An event that has ended isn't a link: there's nothing left to open
+  if (ended) {
+    return (
+      <article
+        className="glass-card-static listing-card--ended"
+        aria-label={`${listing.title} (ended)`}
+        style={cardStyle}
+      >
+        {content}
+      </article>
+    );
+  }
+
+  return (
+    <Link href={href} className="glass-card" style={cardStyle}>
+      {content}
     </Link>
   );
 }
