@@ -35,7 +35,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navRef = useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname, isScrolled });
+  const navRef = useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname });
 
   // Full-width bar at the top of the page; it turns into a floating pill once you scroll
   useEffect(() => {
@@ -85,20 +85,6 @@ export default function Navbar() {
         className="nav-inner nav-float"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        {/* A coral-to-amber comet that travels around the bar's edge while it floats */}
-        <svg aria-hidden data-nav="border" className="nav-border" focusable="false">
-          <defs>
-            <linearGradient id="nav-comet" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#ff5a36" />
-              <stop offset="100%" stopColor="#f59e0b" />
-            </linearGradient>
-          </defs>
-          {/* Geometry and dash lengths are set in pixels by useNavbarMotion */}
-          <rect className="nav-comet nav-comet--glow" data-comet="glow" />
-          <rect className="nav-comet nav-comet--tail" data-comet="tail" />
-          <rect className="nav-comet nav-comet--head" data-comet="head" />
-        </svg>
-
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link href="/" data-nav="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
