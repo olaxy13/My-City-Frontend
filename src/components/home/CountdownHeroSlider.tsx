@@ -57,7 +57,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
     return (
       <div
         style={{
-          minHeight: CARD_HEIGHT * 0.75,
+          height: CARD_HEIGHT, // same size as the event card, so the hero doesn't shrink
           borderRadius: 'var(--radius-lg)',
           border: '1.5px dashed var(--border-color)',
           background: 'var(--bg-card)',
