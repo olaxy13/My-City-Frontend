@@ -134,8 +134,8 @@ export default function TicketsStep({
           <h4 style={{ fontSize: 'var(--text-md)', fontWeight: 700 }}>Where should we send your earnings?</h4>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: '18px', lineHeight: 1.5 }}>
-          Required for paid tiers. Your payout goes directly to this bank account after each transaction. Leave blank
-          if all tiers are free.
+          Required for paid tiers. Your payout, minus a small platform commission, goes directly to this bank account
+          after each sale. Leave this blank if all tiers are free.
         </p>
 
         <Field

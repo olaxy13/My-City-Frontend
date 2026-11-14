@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useCity } from '@/context/CityContext';
 import { api } from '@/lib/api-client';
 import { Category, ListingDetail, ListingType, CategorySlug } from '@/types/api';
-import ListingCard from '@/components/listings/ListingCard';
+import ListingCard, { activeFirst } from '@/components/listings/ListingCard';
 import {
   EmptyStateFrame,
   EMPTY_STATE_MIN_HEIGHT,
@@ -76,7 +76,8 @@ function ExploreContent() {
 
         if (requestId !== requestIdRef.current) return;
 
-        setListings(res.data || []);
+        // Active listings first; ended events go to the end of the page
+        setListings(activeFirst(res.data || []));
         if (res.pagination) {
           setPagination(res.pagination);
         }

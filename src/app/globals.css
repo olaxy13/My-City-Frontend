@@ -7,6 +7,11 @@
 
   /* Color Palette - Vibrant Dark Mode */
   --bg-main: #0a0d14;
+  /* ambient page background (glows + faint dots), see body::before */
+  --page-glow-a: rgba(255, 90, 54, 0.11);
+  --page-glow-b: rgba(245, 158, 11, 0.07);
+  --page-glow-c: rgba(255, 90, 54, 0.06);
+  --page-dots: rgba(148, 163, 184, 0.07);
   --bg-secondary: #101522;
   --bg-card: rgba(18, 24, 38, 0.85);
   --bg-card-hover: rgba(26, 34, 54, 0.95);
@@ -63,6 +68,10 @@
 
   /* Color Palette - Vibrant Light Mode */
   --bg-main: #f8fafc;
+  --page-glow-a: rgba(255, 90, 54, 0.1);
+  --page-glow-b: rgba(245, 158, 11, 0.1);
+  --page-glow-c: rgba(236, 72, 153, 0.05);
+  --page-dots: rgba(15, 23, 42, 0.055);
   --bg-secondary: #f1f5f9;
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
@@ -106,13 +115,39 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden turns body into a scroll container, which breaks
+     position: sticky on the navbar. clip stops sideways overflow the same way. */
+  overflow-x: clip;
   background-color: var(--bg-main);
   color: var(--text-primary);
   font-family: var(--font-sans);
   transition: background-color 0.25s ease, color 0.25s ease;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Ambient page background: soft brand glows at the edges and a faint dot
+ * texture on a fixed layer behind everything, so sections don't sit on a flat
+ * colour. The body is transparent so this layer shows; html keeps the base
+ * colour underneath.
+ */
+body {
+  background-color: transparent;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(55rem 38rem at -8% -6%, var(--page-glow-a), transparent 62%),
+    radial-gradient(48rem 36rem at 108% 32%, var(--page-glow-b), transparent 62%),
+    radial-gradient(56rem 36rem at 22% 112%, var(--page-glow-c), transparent 62%),
+    radial-gradient(var(--page-dots) 1px, transparent 1.4px);
+  background-size: auto, auto, auto, 24px 24px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -330,6 +365,26 @@ button {
   }
 }
 
+/* Gentle fade for content replacing a placeholder */
+.fade-in {
+  animation: fadeIn 0.6s ease both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+  }
+}
+
 /* Hero event card: cross-fade between event photos, text fades up */
 .hero-slide-photo {
   transition: opacity 0.9s ease, transform 6s ease-out;
@@ -361,6 +416,84 @@ button {
   }
 }
 
+/* Listing card for an event that has already happened */
+.listing-card--ended {
+  opacity: 0.68;
+  cursor: default; /* not a link: ended events can't be opened */
+}
+
+.listing-card--ended .listing-card__photo {
+  filter: grayscale(1);
+}
+
+.listing-card--ended .hover-zoom:hover {
+  transform: none; /* no hover zoom: the card isn't clickable */
+}
+
+/*
+ * Faint icons in the hero's background, placed in empty space only:
+ * below the date chips and in the gap beside the event card on wide
+ * screens; beside the heading on phones.
+ */
+.hero-ghost {
+  position: absolute;
+  color: var(--primary);
+  opacity: 0.09;
+  display: none;
+}
+
+[data-theme='light'] .hero-ghost {
+  opacity: 0.11;
+}
+
+@media (min-width: 900px) {
+  .hero-ghost {
+    display: block;
+  }
+  .hero-ghost--ticket {
+    width: 64px; height: 64px;
+    left: 45%; top: 8%;
+    transform: rotate(-14deg);
+  }
+  .hero-ghost--music {
+    width: 56px; height: 56px;
+    left: 44%; bottom: 10%;
+    transform: rotate(10deg);
+  }
+  .hero-ghost--pin {
+    width: 72px; height: 72px;
+    left: 3%; bottom: 6%;
+    transform: rotate(-8deg);
+  }
+  .hero-ghost--food {
+    width: 52px; height: 52px;
+    left: 24%; bottom: 5%;
+    transform: rotate(12deg);
+  }
+  .hero-ghost--calendar {
+    width: 44px; height: 44px;
+    left: 47%; top: 64%;
+    transform: rotate(6deg);
+  }
+}
+
+@media (max-width: 899px) {
+  .hero-ghost--ticket,
+  .hero-ghost--music {
+    display: block;
+  }
+  .hero-ghost--ticket {
+    width: 52px; height: 52px;
+    right: 6%; top: 3%;
+    transform: rotate(-14deg);
+  }
+  .hero-ghost--music {
+    width: 38px; height: 38px;
+    right: 20%; top: 11%;
+    transform: rotate(10deg);
+  }
+}
+
 /* Glassmorphism Containers */
 .glass-nav {
   background: var(--bg-glass);
@@ -368,6 +501,133 @@ button {
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
 }
+
+/*
+ * Navbar: a full-width bar at the top of the page that turns into a floating
+ * pill once the visitor scrolls (.is-scrolled, toggled in Navbar.tsx).
+ */
+.nav-shell {
+  padding: 0;
+  pointer-events: none; /* the gap around the pill doesn't block the page */
+  transition: padding 0.3s ease;
+}
+
+.nav-shell > * {
+  pointer-events: auto;
+}
+
+.nav-float {
+  position: relative;
+  height: 72px;
+  max-width: 100%;
+  margin: 0 auto;
+  /* line the contents up with the 1200px page column */
+  padding: 0 max(20px, calc((100% - 1200px) / 2));
+  border-radius: 0;
+  border: 1px solid transparent;
+  border-bottom-color: var(--border-color);
+  /* near-opaque so it stays readable even where the blur isn't supported */
+  background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: none;
+  transition: max-width 0.3s ease, height 0.3s ease, padding 0.3s ease, border-radius 0.3s ease,
+    border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/*
+ * Static gradient edge on the floating pill: coral on the left and amber on
+ * the right, fading out towards the middle. Drawn on the 1px border with a
+ * mask, and only shown while floating.
+ */
+.nav-float::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 90, 54, 0.9) 0%,
+    rgba(255, 90, 54, 0) 28%,
+    rgba(245, 158, 11, 0) 72%,
+    rgba(245, 158, 11, 0.85) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.is-scrolled .nav-float::before {
+  opacity: 1;
+}
+
+.nav-chevron {
+  transition: transform 0.3s ease;
+}
+
+[aria-expanded='true'] > .nav-chevron {
+  transform: rotate(180deg);
+}
+
+.nav-shell.is-scrolled {
+  padding: 12px 20px 0;
+}
+
+.is-scrolled .nav-float {
+  height: 62px;
+  max-width: 1200px;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-xl);
+  border-color: var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.is-scrolled .nav-drawer {
+  width: 100%;
+}
+
+[data-theme='light'] .is-scrolled .nav-float {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 680px) {
+  .nav-float {
+    height: 62px;
+    padding: 0 12px;
+  }
+
+  .nav-shell.is-scrolled {
+    padding: 10px 12px 0;
+  }
+
+  .is-scrolled .nav-float {
+    height: 56px;
+    padding: 0 8px 0 10px;
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-shell,
+  .nav-float,
+  .nav-chevron {
+    transition: none;
+  }
+}
+
+.nav-drawer {
+  position: relative;
+  /* inset from the edges at the top of the page; the scrolled header pads it already */
+  width: calc(100% - 24px);
+  /* solid: menu text must never compete with the page behind it */
+  background: var(--bg-secondary) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
 
 .glass-card {
   background: var(--bg-card);

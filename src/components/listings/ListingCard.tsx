@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { ListingDetail } from '@/types/api';
 import { CATEGORY_CONFIG, formatEventDate } from '@/lib/utils';
 import CountdownBadge from './CountdownBadge';
-import { MapPin, Calendar, ShieldCheck, Utensils, Building2 } from 'lucide-react';
+import { sizedImage } from '@/lib/images';
+import { MapPin, Calendar, CalendarX, ShieldCheck, Utensils, Building2 } from 'lucide-react';
 
 interface ListingCardProps {
   listing: ListingDetail;
@@ -18,6 +19,24 @@ const COUNTDOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 function isWithinCountdownWindow(dateStr: string) {
   const msAway = new Date(dateStr).getTime() - Date.now();
   return msAway > 0 && msAway <= COUNTDOWN_WINDOW_MS;
+}
+
+/** Events without an end time count as finished this long after they start. */
+const DEFAULT_EVENT_LENGTH_MS = 6 * 60 * 60 * 1000;
+
+/** True for a one-off event whose end time (or start + 6h) has passed. Recurring events never end. */
+export function hasEventEnded(listing: ListingDetail) {
+  const details = listing.listingType === 'event' ? listing.eventDetails : null;
+  if (!details?.startDateTime || details.isRecurring) return false;
+  const end = details.endDateTime
+    ? new Date(details.endDateTime).getTime()
+    : new Date(details.startDateTime).getTime() + DEFAULT_EVENT_LENGTH_MS;
+  return Date.now() > end;
+}
+
+/** Same listings with ended events moved after everything still on; otherwise keeps the given order. */
+export function activeFirst(listings: ListingDetail[]) {
+  return [...listings].sort((a, b) => Number(hasEventEnded(a)) - Number(hasEventEnded(b)));
 }
 
 const metaRow: React.CSSProperties = {
@@ -41,32 +60,33 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
   const href = `/listings/${listing.id}`;
   const startDate = listing.listingType === 'event' ? listing.eventDetails?.startDateTime : undefined;
-  const showCountdown = !!startDate && isWithinCountdownWindow(startDate);
+  const ended = hasEventEnded(listing);
+  const showCountdown = !ended && !!startDate && isWithinCountdownWindow(startDate);
 
   const isVerified =
     (listing.legalDocumentUrls?.length ?? 0) > 0 ||
     !!listing.restaurantDetails?.cacNumber ||
     !!listing.facilityDetails?.cacNumber;
 
-  return (
-    <Link
-      href={href}
-      className="glass-card"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        height: '100%',
-        color: 'inherit',
-        textDecoration: 'none',
-      }}
-    >
+  const cardStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    height: '100%',
+    color: 'inherit',
+    textDecoration: 'none',
+  };
+
+  const content = (
+    <>
       {/* Image: one badge, plus a countdown only when the event is under a week away */}
       <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
         <img
-          src={listing.thumbnailUrl || FALLBACK_IMAGE}
+          src={sizedImage(listing.thumbnailUrl || FALLBACK_IMAGE, 400)}
+          loading="lazy"
+          decoding="async"
           alt=""
-          className="hover-zoom"
+          className="hover-zoom listing-card__photo"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <span
@@ -75,7 +95,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
             position: 'absolute',
             top: '12px',
             left: '12px',
-            background: catConfig.color,
+            background: ended ? 'rgba(71, 85, 105, 0.9)' : catConfig.color,
             color: '#ffffff',
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
           }}
@@ -86,6 +106,30 @@ export default function ListingCard({ listing }: ListingCardProps) {
           <div style={{ position: 'absolute', bottom: '10px', left: '12px' }}>
             <CountdownBadge targetDate={startDate!} compact />
           </div>
+        )}
+        {ended && (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 11px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#fff',
+              background: 'rgba(10, 13, 20, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            <CalendarX size={13} aria-hidden />
+            Ended
+          </span>
         )}
       </div>
 
@@ -143,9 +187,12 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {/* Key fact for the listing type, pinned to the bottom of the card */}
         <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
           {startDate && (
-            <div style={metaRow}>
-              <Calendar size={14} color="var(--primary)" aria-hidden />
-              <span>{formatEventDate(startDate)}</span>
+            <div style={ended ? { ...metaRow, color: 'var(--text-muted)' } : metaRow}>
+              <Calendar size={14} color={ended ? 'currentColor' : 'var(--primary)'} aria-hidden />
+              <span>
+                {ended ? 'Ended · ' : ''}
+                {formatEventDate(startDate)}
+              </span>
             </div>
           )}
 
@@ -171,6 +218,25 @@ export default function ListingCard({ listing }: ListingCardProps) {
           )}
         </div>
       </div>
+    </>
+  );
+
+  // An event that has ended isn't a link: there's nothing left to open
+  if (ended) {
+    return (
+      <article
+        className="glass-card-static listing-card--ended"
+        aria-label={`${listing.title} (ended)`}
+        style={cardStyle}
+      >
+        {content}
+      </article>
+    );
+  }
+
+  return (
+    <Link href={href} className="glass-card" style={cardStyle}>
+      {content}
     </Link>
   );
 }

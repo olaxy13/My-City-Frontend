@@ -2,14 +2,91 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CountdownSliderItem } from '@/types/api';
+import { CountdownSliderItem, ListingDetail } from '@/types/api';
 import { CATEGORY_CONFIG, calculateCountdown, formatEventDate, formatEventTime } from '@/lib/utils';
-import { Bone } from '@/components/ui/Skeletons';
-import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Clock, Plus, Sparkles } from 'lucide-react';
+import { useCity } from '@/context/CityContext';
+import { sizedImage } from '@/lib/images';
+import {
+  ArrowRight,
+  Building2,
+  Calendar,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Flame,
+  MapPin,
+  Plus,
+  Sparkles,
+  Utensils,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface CountdownHeroSliderProps {
   items?: CountdownSliderItem[];
+  /** Shown as "Popular right now" when there are no upcoming events. */
+  places?: ListingDetail[];
   isLoading?: boolean;
+}
+
+/** One card in the carousel; events and places both map to this shape. */
+interface Slide {
+  id: string;
+  image?: string | null;
+  chip: string;
+  chipColor: string;
+  metaIcon: LucideIcon;
+  meta: string;
+  title: string;
+  footIcon: LucideIcon;
+  foot: string;
+  footColor: string;
+  href: string;
+  cta: string;
+}
+
+function eventSlides(items: CountdownSliderItem[]): Slide[] {
+  return items.map((e) => {
+    const category = e.category ? CATEGORY_CONFIG[e.category] : null;
+    return {
+      id: e.id,
+      image: e.thumbnailUrl,
+      chip: category?.label || e.categoryLabel || 'Event',
+      chipColor: category?.color || 'var(--primary)',
+      metaIcon: Calendar,
+      meta: `${formatEventDate(e.startDateTime)} · ${formatEventTime(e.startDateTime)}${e.neighborhood ? ` · ${e.neighborhood}` : ''}`,
+      title: e.title,
+      footIcon: Clock,
+      foot: startsIn(e.startDateTime),
+      footColor: 'var(--accent-amber)',
+      href: `/listings/${e.id}`,
+      cta: 'View event',
+    };
+  });
+}
+
+function placeSlides(places: ListingDetail[]): Slide[] {
+  return places.map((p) => {
+    const category = CATEGORY_CONFIG[p.category];
+    const isFood = p.listingType === 'restaurant';
+    const detail = isFood
+      ? [p.restaurantDetails?.cuisineType, p.restaurantDetails?.priceRange].filter(Boolean).join(' · ')
+      : p.facilityDetails?.facilityCategory || category?.label || '';
+    return {
+      id: p.id,
+      image: p.thumbnailUrl,
+      chip: 'Popular right now',
+      chipColor: 'var(--accent-amber)',
+      metaIcon: MapPin,
+      meta: [category?.label, p.neighborhood].filter(Boolean).join(' · '),
+      title: p.title,
+      footIcon: isFood ? Utensils : Building2,
+      foot: detail,
+      footColor: 'rgba(255,255,255,0.85)',
+      href: `/listings/${p.id}`,
+      cta: 'View place',
+    };
+  });
 }
 
 const CARD_HEIGHT = 400;
@@ -34,13 +111,17 @@ function useMinuteTick() {
 }
 
 /** Compact card showing the next upcoming events one at a time. */
-export default function CountdownHeroSlider({ items = [], isLoading = false }: CountdownHeroSliderProps) {
+export default function CountdownHeroSlider({ items = [], places = [], isLoading = false }: CountdownHeroSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   useMinuteTick();
 
+  // Upcoming events first; with none, popular places fill the card instead of an empty box
   const safeItems = Array.isArray(items) ? items : [];
-  const total = safeItems.length;
+  const showingPlaces = safeItems.length === 0 && places.length > 0;
+  const slides = showingPlaces ? placeSlides(places) : eventSlides(safeItems);
+  const total = slides.length;
+  const noun = showingPlaces ? 'place' : 'event';
 
   // Auto-advance every 6s, paused while hovered or focused
   useEffect(() => {
@@ -49,24 +130,15 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
     return () => clearInterval(id);
   }, [total, isPaused]);
 
-  if (isLoading) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        aria-label="Loading upcoming events"
-        style={{ height: CARD_HEIGHT, borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}
-      >
-        <Bone height="100%" radius="0" />
-      </div>
-    );
-  }
+  // While events load, show a real intro card rather than a grey placeholder;
+  // the first event fades in over it when it arrives.
+  if (isLoading) return <IntroCard />;
 
   if (total === 0) {
     return (
       <div
         style={{
-          minHeight: CARD_HEIGHT * 0.75,
+          height: CARD_HEIGHT, // same size as the event card, so the hero doesn't shrink
           borderRadius: 'var(--radius-lg)',
           border: '1.5px dashed var(--border-color)',
           background: 'var(--bg-card)',
@@ -107,18 +179,18 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
   }
 
   const index = currentIndex % total;
-  const current = safeItems[index];
-  const category = current.category ? CATEGORY_CONFIG[current.category] : null;
-  const categoryLabel = category?.label || current.categoryLabel || 'Event';
-  const href = `/listings/${current.id}`;
+  const current = slides[index];
+  const MetaIcon = current.metaIcon;
+  const FootIcon = current.footIcon;
 
   const go = (delta: number) => setCurrentIndex((i) => (i + delta + total) % total);
 
   return (
     <div
       role="region"
+      className="fade-in"
       aria-roledescription="carousel"
-      aria-label="Upcoming events"
+      aria-label={showingPlaces ? 'Popular places' : 'Upcoming events'}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
@@ -132,8 +204,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         color: '#fff',
       }}
     >
-      {/* Every event's photo is stacked; the current one fades in over the others */}
-      {safeItems.map((item, i) => (
+      {/* Every slide's photo is stacked; the current one fades in over the others */}
+      {slides.map((item, i) => (
         <div
           key={item.id}
           aria-hidden
@@ -141,7 +213,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${item.thumbnailUrl || FALLBACK_IMAGE})`,
+            backgroundImage: `url(${sizedImage(item.image || FALLBACK_IMAGE, 600)})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: i === index ? 1 : 0,
@@ -186,16 +258,17 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
         >
           <span
             aria-hidden
-            style={{ width: 8, height: 8, borderRadius: '50%', background: category?.color || 'var(--primary)' }}
+            style={{ width: 8, height: 8, borderRadius: '50%', background: current.chipColor }}
           />
-          {categoryLabel}
+          {showingPlaces && <Flame size={12} color="var(--accent-amber)" aria-hidden />}
+          {current.chip}
         </span>
 
         {total > 1 && (
           <div style={{ display: 'flex', gap: '6px' }}>
             {[
-              { label: 'Previous event', Icon: ChevronLeft, delta: -1 },
-              { label: 'Next event', Icon: ChevronRight, delta: 1 },
+              { label: `Previous ${noun}`, Icon: ChevronLeft, delta: -1 },
+              { label: `Next ${noun}`, Icon: ChevronRight, delta: 1 },
             ].map(({ label, Icon, delta }) => (
               <button
                 key={label}
@@ -241,11 +314,8 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
             marginBottom: '6px',
           }}
         >
-          <Calendar size={14} aria-hidden />
-          <span>
-            {formatEventDate(current.startDateTime)} · {formatEventTime(current.startDateTime)}
-            {current.neighborhood ? ` · ${current.neighborhood}` : ''}
-          </span>
+          <MetaIcon size={14} aria-hidden />
+          <span>{current.meta}</span>
         </div>
 
         <h2
@@ -271,15 +341,15 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
               gap: '6px',
               fontSize: 'var(--text-sm)',
               fontWeight: 700,
-              color: 'var(--accent-amber)',
+              color: current.footColor,
             }}
           >
-            <Clock size={14} aria-hidden />
-            {startsIn(current.startDateTime)}
+            {current.foot && <FootIcon size={14} aria-hidden />}
+            {current.foot}
           </span>
 
-          <Link href={href} className="btn btn-primary" style={{ padding: '9px 16px', fontSize: 'var(--text-sm)' }}>
-            <span>View event</span>
+          <Link href={current.href} className="btn btn-primary" style={{ padding: '9px 16px', fontSize: 'var(--text-sm)' }}>
+            <span>{current.cta}</span>
             <ArrowRight size={15} aria-hidden />
           </Link>
         </div>
@@ -288,11 +358,11 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
 
         {total > 1 && (
           <div style={{ display: 'flex', gap: '5px', marginTop: '14px' }}>
-            {safeItems.map((item, i) => (
+            {slides.map((item, i) => (
               <button
                 key={item.id}
                 type="button"
-                aria-label={`Show event ${i + 1} of ${total}`}
+                aria-label={`Show ${noun} ${i + 1} of ${total}`}
                 aria-current={i === index ? 'true' : undefined}
                 onClick={() => setCurrentIndex(i)}
                 style={{
@@ -308,6 +378,82 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Shown in the event card's place while events load: on-brand content, not a skeleton. */
+function IntroCard() {
+  const { currentCity } = useCity();
+  const city = currentCity || 'your city';
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        height: CARD_HEIGHT,
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        isolation: 'isolate',
+        color: '#fff',
+        background: [
+          'radial-gradient(70% 60% at 85% 15%, rgba(255, 255, 255, 0.22), transparent 60%)',
+          'radial-gradient(80% 70% at 10% 100%, rgba(10, 13, 20, 0.45), transparent 70%)',
+          'linear-gradient(135deg, #ff5a36 0%, #ff7a3d 45%, #f59e0b 100%)',
+        ].join(', '),
+        boxShadow: '0 18px 40px rgba(255, 90, 54, 0.28)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '24px',
+      }}
+    >
+      {/* Large faint icons for texture */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.16 }}>
+        <CalendarDays size={150} style={{ position: 'absolute', right: -20, top: 30, transform: 'rotate(10deg)' }} />
+        <Utensils size={90} style={{ position: 'absolute', right: 120, bottom: 120, transform: 'rotate(-12deg)' }} />
+        <MapPin size={70} style={{ position: 'absolute', left: 40, top: 90, transform: 'rotate(-6deg)' }} />
+      </div>
+
+      <span
+        style={{
+          alignSelf: 'flex-start',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '5px 12px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: 'var(--text-xs)',
+          fontWeight: 700,
+          background: 'rgba(10, 13, 20, 0.25)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Sparkles size={13} aria-hidden /> This week in {city}
+      </span>
+
+      <div>
+        <h2 style={{ fontSize: 'clamp(1.5rem, 2.6vw, 1.9rem)', lineHeight: 1.15, color: '#fff', marginBottom: '8px' }}>
+          Concerts, food spots and hidden gems
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'rgba(255,255,255,0.88)', marginBottom: '18px', maxWidth: 320 }}>
+          Everything worth doing in {city}, in one place.
+        </p>
+        <Link
+          href="/explore"
+          className="btn"
+          style={{
+            padding: '9px 16px',
+            fontSize: 'var(--text-sm)',
+            background: '#fff',
+            color: 'var(--primary)',
+            fontWeight: 700,
+          }}
+        >
+          <span>Explore {city}</span>
+          <ArrowRight size={15} aria-hidden />
+        </Link>
       </div>
     </div>
   );

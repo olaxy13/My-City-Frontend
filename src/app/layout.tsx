@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getRequestCity } from '@/lib/request-city';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
@@ -7,6 +8,7 @@ import { CityProvider } from '@/context/CityContext';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { InlineScript } from '@/components/ui/InlineScript';
 
 export const metadata: Metadata = {
   title: 'City Discovery Abeokuta | Discover Events, Food, Nightlife & Facilities',
@@ -27,11 +29,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // The visitor's saved city, or the nearest one to them, so the server renders
+  // the same city the browser will show
+  const initialCity = await getRequestCity();
+
   return (
     <html lang="en" suppressHydrationWarning data-theme="dark" data-scroll-behavior="smooth">
       <head>
@@ -39,10 +45,8 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.webp" type="image/webp" />
         <link rel="apple-touch-icon" href="/favicon.webp" />
         {/* Apply saved theme before first paint to prevent dark→light (or light→dark) flash */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('city_discovery_theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else{document.documentElement.setAttribute('data-theme','dark');}}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`,
-          }}
+        <InlineScript
+          html={`(function(){try{var t=localStorage.getItem('city_discovery_theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else{document.documentElement.setAttribute('data-theme','dark');}}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`}
         />
         <Script
           id="global-error-suppression"
@@ -118,7 +122,7 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <CityProvider>
+          <CityProvider initialCity={initialCity}>
             <AuthProvider>
               <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Navbar />

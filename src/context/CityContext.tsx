@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { City } from '@/types/api';
 import { api } from '@/lib/api-client';
 import { getNeighborhoodsForCity as getNeighborhoodsHelper } from '@/lib/utils';
+import { CITY_STORAGE_KEY, DEFAULT_CITY, writeCityCookie } from '@/lib/city';
 
 interface CityContextType {
   currentCity: string;
@@ -27,21 +28,58 @@ const DEFAULT_CITIES: City[] = [
   { id: '4', name: 'Abuja', state: 'FCT', isActive: false },
 ];
 
-const CITY_STORAGE_KEY = 'city_discovery_selected_city';
+const CITY_CHANGE_EVENT = 'city-discovery:city-change';
 
-function readSavedCity(): string {
-  if (typeof window === 'undefined') return 'Abeokuta';
+/*
+ * The saved city lives in localStorage and is mirrored into a cookie. The root
+ * layout reads the cookie and passes it in as `initialCity`, which
+ * useSyncExternalStore uses for the server render and hydration; afterwards
+ * the browser's own copy takes over. Server and browser therefore agree, and
+ * the server can render that city's data.
+ */
+/** Fallback when localStorage is blocked (private mode, disabled storage). */
+let memoryCity: string | null = null;
+
+function readSavedCity(fallback: string): string {
   try {
-    return localStorage.getItem(CITY_STORAGE_KEY) || 'Abeokuta';
+    return localStorage.getItem(CITY_STORAGE_KEY) || memoryCity || fallback;
   } catch {
-    return 'Abeokuta';
+    return memoryCity || fallback;
   }
+}
+
+function subscribeToCity(onChange: () => void) {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === CITY_STORAGE_KEY) onChange();
+  };
+  window.addEventListener('storage', onStorage); // other tabs
+  window.addEventListener(CITY_CHANGE_EVENT, onChange); // this tab
+  return () => {
+    window.removeEventListener('storage', onStorage);
+    window.removeEventListener(CITY_CHANGE_EVENT, onChange);
+  };
 }
 
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
-export function CityProvider({ children }: { children: React.ReactNode }) {
-  const [currentCity, setCurrentCityState] = useState<string>(readSavedCity);
+export function CityProvider({
+  children,
+  initialCity = DEFAULT_CITY,
+}: {
+  children: React.ReactNode;
+  /** The city from the request cookie, so the server render matches the browser. */
+  initialCity?: string;
+}) {
+  const currentCity = useSyncExternalStore(
+    subscribeToCity,
+    () => readSavedCity(initialCity),
+    () => initialCity
+  );
+
+  // Visitors who chose a city before the cookie existed: copy it over once.
+  useEffect(() => {
+    if (currentCity !== initialCity) writeCityCookie(currentCity);
+  }, [currentCity, initialCity]);
   const [cities, setCities] = useState<City[]>(DEFAULT_CITIES);
   const [isLoadingCities, setIsLoadingCities] = useState<boolean>(true);
 
@@ -63,12 +101,14 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setCurrentCity = (city: string) => {
-    setCurrentCityState(city);
+    memoryCity = city;
+    writeCityCookie(city);
     try {
       localStorage.setItem(CITY_STORAGE_KEY, city);
     } catch {
       // ignore storage access errors
     }
+    window.dispatchEvent(new Event(CITY_CHANGE_EVENT));
   };
 
   const activeCityObj = cities.find((c) => c.name.toLowerCase() === currentCity.toLowerCase());

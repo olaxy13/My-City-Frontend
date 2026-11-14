@@ -404,17 +404,35 @@ export function SessionLoader({ message = 'Loading...' }: { message?: string }) 
   );
 }
 
-export function HomePageSkeleton() {
+/**
+ * Placeholders for the home page below the hero (neighborhood bento, Trending
+ * chips and grid). The hero itself needs no data, so app/loading.tsx renders
+ * the real one above this.
+ */
+export function HomeBelowHeroSkeleton() {
   return (
-    <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }} role="status" aria-busy="true">
-      <span className="sr-only">Loading homepage</span>
-      <HeroSliderSkeleton />
-      <div style={{ margin: '40px 0' }}>
-        <Bone width={180} height={12} style={{ marginBottom: 10 }} />
-        <Bone width={280} height={24} style={{ marginBottom: 20 }} />
-        <CategoryGridSkeleton />
+    <div role="status" aria-busy="true">
+      <span className="sr-only">Loading listings</span>
+
+      {/* Explore by neighborhood */}
+      <div style={{ marginTop: 48 }}>
+        <Bone width={260} height={26} style={{ marginBottom: 8 }} />
+        <Bone width={200} height={12} style={{ marginBottom: 16 }} />
+        <div className="area-grid">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Bone key={i} height="100%" radius="var(--radius-lg)" style={{ minHeight: 140 }} />
+          ))}
+        </div>
       </div>
-      <ListingGridSkeleton count={6} />
+
+      {/* Trending: heading, category chips, grid */}
+      <div style={{ margin: '48px 0' }}>
+        <Bone width={240} height={26} style={{ marginBottom: 16 }} />
+        <div style={{ marginBottom: 24 }}>
+          <CategoryGridSkeleton />
+        </div>
+        <ListingGridSkeleton count={6} />
+      </div>
     </div>
   );
 }
