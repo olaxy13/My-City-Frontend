@@ -33,6 +33,11 @@ export function hasEventEnded(listing: ListingDetail) {
   return Date.now() > end;
 }
 
+/** Same listings with ended events moved after everything still on; otherwise keeps the given order. */
+export function activeFirst(listings: ListingDetail[]) {
+  return [...listings].sort((a, b) => Number(hasEventEnded(a)) - Number(hasEventEnded(b)));
+}
+
 const metaRow: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
