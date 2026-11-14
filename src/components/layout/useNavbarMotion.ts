@@ -14,11 +14,13 @@ interface NavbarMotionState {
   isCityDropdownOpen: boolean;
   /** Re-binds hover interactions when the page changes (e.g. the search box appears). */
   pathname: string | null;
+  /** The travelling border only shows (and runs) while the bar floats. */
+  isScrolled: boolean;
 }
 
 /**
  * GSAP motion for the navbar. Elements opt in with data-nav attributes:
- *   border   – the gradient that travels around the bar
+ *   border   – the gradient that travels around the bar (only while floating)
  *   logo     – brand link (compass spins on hover)
  *   link     – nav links (icon tilts up on hover)
  *   cta      – Submit Listing (magnetic pull, press squish)
@@ -28,20 +30,22 @@ interface NavbarMotionState {
  *   drawer / drawer-item  – phone menu (drops in, items follow)
  * Everything is skipped for visitors who prefer reduced motion.
  */
-export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname }: NavbarMotionState) {
+export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname, isScrolled }: NavbarMotionState) {
   const root = useRef<HTMLElement>(null);
   const isFirstTheme = useRef(true);
+  const borderTween = useRef<gsap.core.Tween | null>(null);
 
   // Gradient travelling around the bar, and the bar settling in on first load
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK, () => {
-        gsap.fromTo(
+        borderTween.current = gsap.fromTo(
           '[data-nav="border"]',
           { '--nav-angle': '0deg' },
-          { '--nav-angle': '360deg', duration: 7, ease: 'none', repeat: -1 }
+          { '--nav-angle': '360deg', duration: 7, ease: 'none', repeat: -1, paused: true }
         );
+        if (window.scrollY > 24) borderTween.current.play();
         gsap.from('[data-nav="bar"] > :not([data-nav="border"])', {
           y: -8,
           opacity: 0,
@@ -50,10 +54,24 @@ export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, p
           stagger: 0.06,
           clearProps: 'transform,opacity',
         });
+        return () => {
+          borderTween.current = null;
+        };
       });
       return () => mm.revert();
     },
     { scope: root }
+  );
+
+  // The travelling border only runs while the bar floats (it's hidden otherwise)
+  useGSAP(
+    () => {
+      const tween = borderTween.current;
+      if (!tween) return;
+      if (isScrolled) tween.play();
+      else tween.pause();
+    },
+    { dependencies: [isScrolled] }
   );
 
   // Hover and press interactions

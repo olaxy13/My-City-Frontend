@@ -35,7 +35,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navRef = useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname });
+  const navRef = useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname, isScrolled });
 
   // Full-width bar at the top of the page; it turns into a floating pill once you scroll
   useEffect(() => {
