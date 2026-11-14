@@ -431,6 +431,70 @@ button {
   filter: grayscale(1);
 }
 
+/*
+ * Faint icons in the hero's background, placed in empty space only:
+ * below the date chips and in the gap beside the event card on wide
+ * screens; beside the heading on phones.
+ */
+.hero-ghost {
+  position: absolute;
+  color: var(--primary);
+  opacity: 0.09;
+  display: none;
+}
+
+[data-theme='light'] .hero-ghost {
+  opacity: 0.11;
+}
+
+@media (min-width: 900px) {
+  .hero-ghost {
+    display: block;
+  }
+  .hero-ghost--ticket {
+    width: 64px; height: 64px;
+    left: 45%; top: 8%;
+    transform: rotate(-14deg);
+  }
+  .hero-ghost--music {
+    width: 56px; height: 56px;
+    left: 44%; bottom: 10%;
+    transform: rotate(10deg);
+  }
+  .hero-ghost--pin {
+    width: 72px; height: 72px;
+    left: 3%; bottom: 6%;
+    transform: rotate(-8deg);
+  }
+  .hero-ghost--food {
+    width: 52px; height: 52px;
+    left: 24%; bottom: 5%;
+    transform: rotate(12deg);
+  }
+  .hero-ghost--calendar {
+    width: 44px; height: 44px;
+    left: 47%; top: 64%;
+    transform: rotate(6deg);
+  }
+}
+
+@media (max-width: 899px) {
+  .hero-ghost--ticket,
+  .hero-ghost--music {
+    display: block;
+  }
+  .hero-ghost--ticket {
+    width: 52px; height: 52px;
+    right: 6%; top: 3%;
+    transform: rotate(-14deg);
+  }
+  .hero-ghost--music {
+    width: 38px; height: 38px;
+    right: 20%; top: 11%;
+    transform: rotate(10deg);
+  }
+}
+
 /* Glassmorphism Containers */
 .glass-nav {
   background: var(--bg-glass);

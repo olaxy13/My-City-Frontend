@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Calendar, CalendarDays, CalendarRange, Search, type LucideIcon } from 'lucide-react';
+import { Calendar, CalendarDays, CalendarRange, MapPin, Music, Search, Ticket, Utensils, type LucideIcon } from 'lucide-react';
 import type { CountdownSliderItem, ListingDetail } from '@/types/api';
 import { useCity } from '@/context/CityContext';
 import CountdownHeroSlider from './CountdownHeroSlider';
@@ -26,6 +26,8 @@ export default function HomeHero({ items, places = [], isLoading }: HomeHeroProp
   const { currentCity } = useCity();
   const router = useRouter();
   const [query, setQuery] = useState('');
+  const heroRef = useRef<HTMLElement>(null);
+  useHideOverlappingGhosts(heroRef);
   const city = currentCity || 'your city';
 
   const onSearch = (e: React.FormEvent) => {
@@ -36,6 +38,7 @@ export default function HomeHero({ items, places = [], isLoading }: HomeHeroProp
 
   return (
     <section
+      ref={heroRef}
       aria-labelledby="home-hero-title"
       style={{
         position: 'relative',
@@ -153,10 +156,57 @@ export default function HomeHero({ items, places = [], isLoading }: HomeHeroProp
   );
 }
 
-/** Edge-only dot grid behind the hero. */
+/** Edge-only dot grid and faint icons behind the hero. */
+/** Faint, tilted icons in the hero's empty spaces; positions per screen size are in globals.css. */
+const GHOST_ICONS: { Icon: LucideIcon; className: string }[] = [
+  { Icon: Ticket, className: 'hero-ghost hero-ghost--ticket' },
+  { Icon: Music, className: 'hero-ghost hero-ghost--music' },
+  { Icon: MapPin, className: 'hero-ghost hero-ghost--pin' },
+  { Icon: Utensils, className: 'hero-ghost hero-ghost--food' },
+  { Icon: CalendarDays, className: 'hero-ghost hero-ghost--calendar' },
+];
+
+/**
+ * Hides any faint icon that would sit behind the heading, text, search box,
+ * date chips or event card, re-checking whenever the hero changes size, so the
+ * icons only ever fill genuinely empty space.
+ */
+function useHideOverlappingGhosts(hero: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const section = hero.current;
+    if (!section) return;
+    const overlaps = (a: DOMRect, b: DOMRect, pad = 8) =>
+      !(a.right + pad < b.left || a.left - pad > b.right || a.bottom + pad < b.top || a.top - pad > b.bottom);
+    const check = () => {
+      // Text is measured line by line, so the empty space beside a short line still counts as free
+      const textLines = [...section.querySelectorAll('h1, p')].flatMap((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return [...range.getClientRects()];
+      });
+      const blocks = [...section.querySelectorAll('form, nav a, [aria-roledescription="carousel"], .fade-in')].map((el) =>
+        el.getBoundingClientRect()
+      );
+      const content = [...textLines, ...blocks];
+      section.querySelectorAll<SVGElement>('.hero-ghost').forEach((ghost) => {
+        ghost.style.visibility = 'visible';
+        const r = ghost.getBoundingClientRect();
+        if (r.width && content.some((c) => overlaps(r, c))) ghost.style.visibility = 'hidden';
+      });
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(section);
+    return () => ro.disconnect();
+  }, [hero]);
+}
+
 function HeroBackdrop() {
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none' }}>
+      {GHOST_ICONS.map(({ Icon, className }) => (
+        <Icon key={className} className={className} strokeWidth={1.5} />
+      ))}
       <div
         style={{
           position: 'absolute',
