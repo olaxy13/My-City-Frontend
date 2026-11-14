@@ -32,7 +32,16 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Full-width bar at the top of the page; it turns into a floating pill once you scroll
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Close city dropdown on click outside
   useEffect(() => {
@@ -63,25 +72,17 @@ export default function Navbar() {
   }
 
   return (
-    // Transparent sticky strip; the bar inside floats as a pill, inset from the edges
-    <header className="nav-shell" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+    // Sticky strip: a full-width bar at the top, a floating pill once scrolled
+    <header
+      className={isScrolled ? 'nav-shell is-scrolled' : 'nav-shell'}
+      style={{ position: 'sticky', top: 0, zIndex: 50 }}
+    >
       <div
         className="nav-inner nav-float"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '68px' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        {/* Brand accent along the pill's bottom edge */}
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: '28px',
-            right: '28px',
-            bottom: -1,
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.75) 30%, rgba(245, 158, 11, 0.65) 70%, transparent)',
-            pointerEvents: 'none',
-          }}
-        />
+        {/* Brand accent along the bar's bottom edge */}
+        <span aria-hidden className="nav-accent" />
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -398,9 +399,7 @@ export default function Navbar() {
           .brand-text div:last-child {
             display: none;
           }
-          .nav-inner {
-            height: 64px !important;
-          }
+
         }
 
         /* Mobile: compact everything */
@@ -421,7 +420,6 @@ export default function Navbar() {
             padding: 8px 10px !important;
           }
           .nav-inner {
-            height: 58px !important;
             gap: 8px;
           }
         }

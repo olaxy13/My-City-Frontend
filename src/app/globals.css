@@ -406,10 +406,14 @@ button {
   border-bottom: 1px solid var(--border-color);
 }
 
-/* Floating navbar: a transparent sticky strip holding a rounded glass pill */
+/*
+ * Navbar: a full-width bar at the top of the page that turns into a floating
+ * pill once the visitor scrolls (.is-scrolled, toggled in Navbar.tsx).
+ */
 .nav-shell {
-  padding: 12px 20px 0;
+  padding: 0;
   pointer-events: none; /* the gap around the pill doesn't block the page */
+  transition: padding 0.3s ease;
 }
 
 .nav-shell > * {
@@ -418,39 +422,94 @@ button {
 
 .nav-float {
   position: relative;
-  max-width: 1200px;
+  height: 72px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 12px 0 16px;
-  border-radius: var(--radius-xl);
+  /* line the contents up with the 1200px page column */
+  padding: 0 max(20px, calc((100% - 1200px) / 2));
+  border-radius: 0;
+  border: 1px solid transparent;
+  border-bottom-color: var(--border-color);
   /* near-opaque so it stays readable even where the blur isn't supported */
   background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  box-shadow: none;
+  transition: max-width 0.3s ease, height 0.3s ease, padding 0.3s ease, border-radius 0.3s ease,
+    border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-[data-theme='light'] .nav-float {
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+.nav-accent {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.75) 30%, rgba(245, 158, 11, 0.65) 70%, transparent);
+  pointer-events: none;
+  transition: left 0.3s ease, right 0.3s ease;
+}
+
+.nav-shell.is-scrolled {
+  padding: 12px 20px 0;
+}
+
+.is-scrolled .nav-float {
+  height: 62px;
+  max-width: 1200px;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-xl);
+  border-color: var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.is-scrolled .nav-drawer {
+  width: 100%;
+}
+
+[data-theme='light'] .is-scrolled .nav-float {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.is-scrolled .nav-accent {
+  left: 28px;
+  right: 28px;
+}
+
+@media (max-width: 680px) {
+  .nav-float {
+    height: 62px;
+    padding: 0 12px;
+  }
+
+  .nav-shell.is-scrolled {
+    padding: 10px 12px 0;
+  }
+
+  .is-scrolled .nav-float {
+    height: 56px;
+    padding: 0 8px 0 10px;
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-shell,
+  .nav-float,
+  .nav-accent {
+    transition: none;
+  }
 }
 
 .nav-drawer {
   position: relative;
+  /* inset from the edges at the top of the page; the scrolled header pads it already */
+  width: calc(100% - 24px);
   /* solid: menu text must never compete with the page behind it */
   background: var(--bg-secondary) !important;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
-@media (max-width: 680px) {
-  .nav-shell {
-    padding: 10px 12px 0;
-  }
-
-  .nav-float {
-    padding: 0 8px 0 10px;
-    border-radius: var(--radius-lg);
-  }
-}
 
 .glass-card {
   background: var(--bg-card);
