@@ -404,38 +404,15 @@ export function SessionLoader({ message = 'Loading...' }: { message?: string }) 
   );
 }
 
-/** Mirrors the home page: search-first hero, neighborhood bento, Trending grid. */
-export function HomePageSkeleton() {
+/**
+ * Placeholders for the home page below the hero (neighborhood bento, Trending
+ * chips and grid). The hero itself needs no data, so app/loading.tsx renders
+ * the real one above this.
+ */
+export function HomeBelowHeroSkeleton() {
   return (
-    <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }} role="status" aria-busy="true">
-      <span className="sr-only">Loading homepage</span>
-
-      {/* Hero: heading, search and date chips beside the event card */}
-      <div
-        style={{
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-color)',
-          background: 'var(--bg-secondary)',
-          padding: 'clamp(20px, 4vw, 44px)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
-          gap: 'clamp(24px, 4vw, 48px)',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          <Bone width="80%" height={44} style={{ marginBottom: 16 }} />
-          <Bone width="90%" height={14} style={{ marginBottom: 8 }} />
-          <Bone width="60%" height={14} style={{ marginBottom: 24 }} />
-          <Bone height={50} radius="var(--radius-full)" style={{ marginBottom: 16, maxWidth: 520 }} />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Bone width={80} height={32} radius="var(--radius-full)" />
-            <Bone width={120} height={32} radius="var(--radius-full)" />
-            <Bone width={100} height={32} radius="var(--radius-full)" />
-          </div>
-        </div>
-        <Bone height={400} radius="var(--radius-lg)" />
-      </div>
+    <div role="status" aria-busy="true">
+      <span className="sr-only">Loading listings</span>
 
       {/* Explore by neighborhood */}
       <div style={{ marginTop: 48 }}>

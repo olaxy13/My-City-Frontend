@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CountdownSliderItem } from '@/types/api';
 import { CATEGORY_CONFIG, calculateCountdown, formatEventDate, formatEventTime } from '@/lib/utils';
-import { Bone } from '@/components/ui/Skeletons';
-import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Clock, Plus, Sparkles } from 'lucide-react';
+import { useCity } from '@/context/CityContext';
+import { ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, Sparkles, Utensils, MapPin } from 'lucide-react';
 
 interface CountdownHeroSliderProps {
   items?: CountdownSliderItem[];
@@ -49,18 +49,9 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
     return () => clearInterval(id);
   }, [total, isPaused]);
 
-  if (isLoading) {
-    return (
-      <div
-        role="status"
-        aria-busy="true"
-        aria-label="Loading upcoming events"
-        style={{ height: CARD_HEIGHT, borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}
-      >
-        <Bone height="100%" radius="0" />
-      </div>
-    );
-  }
+  // While events load, show a real intro card rather than a grey placeholder;
+  // the first event fades in over it when it arrives.
+  if (isLoading) return <IntroCard />;
 
   if (total === 0) {
     return (
@@ -117,6 +108,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
   return (
     <div
       role="region"
+      className="fade-in"
       aria-roledescription="carousel"
       aria-label="Upcoming events"
       onMouseEnter={() => setIsPaused(true)}
@@ -308,6 +300,82 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Shown in the event card's place while events load: on-brand content, not a skeleton. */
+function IntroCard() {
+  const { currentCity } = useCity();
+  const city = currentCity || 'your city';
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        height: CARD_HEIGHT,
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        isolation: 'isolate',
+        color: '#fff',
+        background: [
+          'radial-gradient(70% 60% at 85% 15%, rgba(255, 255, 255, 0.22), transparent 60%)',
+          'radial-gradient(80% 70% at 10% 100%, rgba(10, 13, 20, 0.45), transparent 70%)',
+          'linear-gradient(135deg, #ff5a36 0%, #ff7a3d 45%, #f59e0b 100%)',
+        ].join(', '),
+        boxShadow: '0 18px 40px rgba(255, 90, 54, 0.28)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '24px',
+      }}
+    >
+      {/* Large faint icons for texture */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.16 }}>
+        <CalendarDays size={150} style={{ position: 'absolute', right: -20, top: 30, transform: 'rotate(10deg)' }} />
+        <Utensils size={90} style={{ position: 'absolute', right: 120, bottom: 120, transform: 'rotate(-12deg)' }} />
+        <MapPin size={70} style={{ position: 'absolute', left: 40, top: 90, transform: 'rotate(-6deg)' }} />
+      </div>
+
+      <span
+        style={{
+          alignSelf: 'flex-start',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '5px 12px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: 'var(--text-xs)',
+          fontWeight: 700,
+          background: 'rgba(10, 13, 20, 0.25)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <Sparkles size={13} aria-hidden /> This week in {city}
+      </span>
+
+      <div>
+        <h2 style={{ fontSize: 'clamp(1.5rem, 2.6vw, 1.9rem)', lineHeight: 1.15, color: '#fff', marginBottom: '8px' }}>
+          Concerts, food spots and hidden gems
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'rgba(255,255,255,0.88)', marginBottom: '18px', maxWidth: 320 }}>
+          Everything worth doing in {city}, in one place.
+        </p>
+        <Link
+          href="/explore"
+          className="btn"
+          style={{
+            padding: '9px 16px',
+            fontSize: 'var(--text-sm)',
+            background: '#fff',
+            color: 'var(--primary)',
+            fontWeight: 700,
+          }}
+        >
+          <span>Explore {city}</span>
+          <ArrowRight size={15} aria-hidden />
+        </Link>
       </div>
     </div>
   );
