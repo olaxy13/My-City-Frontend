@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ListingDetail } from '@/types/api';
 import { Bone } from '@/components/ui/Skeletons';
+import { sizedImage } from '@/lib/images';
 import { ArrowRight, MapPin } from 'lucide-react';
 
 /** One large card for the busiest area plus four smaller ones. */
@@ -123,7 +124,9 @@ function AreaCard({ area, featured }: { area: Area; featured: boolean }) {
     >
       {area.photo && (
         <img
-          src={area.photo}
+          src={sizedImage(area.photo, featured ? 620 : 320)}
+          loading="lazy"
+          decoding="async"
           alt=""
           className="area-card__photo"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: -2 }}

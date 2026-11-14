@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CountdownSliderItem } from '@/types/api';
 import { CATEGORY_CONFIG, calculateCountdown, formatEventDate, formatEventTime } from '@/lib/utils';
 import { useCity } from '@/context/CityContext';
+import { sizedImage } from '@/lib/images';
 import { ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, Sparkles, Utensils, MapPin } from 'lucide-react';
 
 interface CountdownHeroSliderProps {
@@ -133,7 +134,7 @@ export default function CountdownHeroSlider({ items = [], isLoading = false }: C
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${item.thumbnailUrl || FALLBACK_IMAGE})`,
+            backgroundImage: `url(${sizedImage(item.thumbnailUrl || FALLBACK_IMAGE, 600)})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: i === index ? 1 : 0,

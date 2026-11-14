@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ListingDetail } from '@/types/api';
 import { CATEGORY_CONFIG, formatEventDate } from '@/lib/utils';
 import CountdownBadge from './CountdownBadge';
+import { sizedImage } from '@/lib/images';
 import { MapPin, Calendar, CalendarX, ShieldCheck, Utensils, Building2 } from 'lucide-react';
 
 interface ListingCardProps {
@@ -83,7 +84,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
       {/* Image: one badge, plus a countdown only when the event is under a week away */}
       <div style={{ position: 'relative', width: '100%', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
         <img
-          src={listing.thumbnailUrl || FALLBACK_IMAGE}
+          src={sizedImage(listing.thumbnailUrl || FALLBACK_IMAGE, 400)}
+          loading="lazy"
+          decoding="async"
           alt=""
           className="hover-zoom listing-card__photo"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
