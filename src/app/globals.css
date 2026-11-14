@@ -440,27 +440,47 @@ button {
 }
 
 .nav-border {
-  --nav-angle: 0deg;
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1.5px;
-  /* a bright coral-to-amber arc on a faint ring; GSAP rotates --nav-angle */
-  background: conic-gradient(
-    from var(--nav-angle),
-    rgba(255, 90, 54, 0) 0deg,
-    rgba(255, 90, 54, 0.95) 50deg,
-    rgba(245, 158, 11, 0.9) 95deg,
-    rgba(245, 158, 11, 0) 150deg,
-    rgba(255, 90, 54, 0) 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  inset: -1px; /* sit on the bar's 1px border */
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  overflow: visible;
   pointer-events: none;
   /* only shown while the bar floats (see .is-scrolled below) */
   opacity: 0;
   transition: opacity 0.4s ease;
+}
+
+.nav-comet {
+  fill: none;
+  stroke-linecap: round;
+  rx: var(--radius-xl); /* follows the pill's corners (attribute rx is the fallback) */
+}
+
+.nav-comet--head {
+  stroke: url(#nav-comet);
+  stroke-width: 1.75;
+  stroke-dasharray: 10 90;
+}
+
+.nav-comet--tail {
+  stroke: #ff5a36;
+  stroke-opacity: 0.35;
+  stroke-width: 1.25;
+  stroke-dasharray: 20 80;
+}
+
+.nav-comet--glow {
+  stroke: url(#nav-comet);
+  stroke-opacity: 0.28;
+  stroke-width: 5;
+  stroke-dasharray: 10 90;
+}
+
+@media (max-width: 680px) {
+  .nav-comet {
+    rx: var(--radius-lg);
+  }
 }
 
 .is-scrolled .nav-border {

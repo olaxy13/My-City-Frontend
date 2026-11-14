@@ -8,6 +8,18 @@ gsap.registerPlugin(useGSAP);
 
 const MOTION_OK = '(prefers-reduced-motion: no-preference)';
 
+/** One lap on a bar with COMET_REFERENCE_PERIMETER px of outline; other sizes keep the same speed. */
+const COMET_LAP_SECONDS = 10;
+const COMET_REFERENCE_PERIMETER = 2500;
+
+/** Speeds the lap up on short bars (phones) so the comet moves at a steady px/second. */
+function syncCometSpeed(tween: gsap.core.Tween, bar: Element | null) {
+  if (!bar) return;
+  const { width, height } = bar.getBoundingClientRect();
+  const perimeter = 2 * (width + height);
+  if (perimeter > 0) tween.timeScale(COMET_REFERENCE_PERIMETER / perimeter);
+}
+
 interface NavbarMotionState {
   theme: string;
   isMobileMenuOpen: boolean;
@@ -20,7 +32,7 @@ interface NavbarMotionState {
 
 /**
  * GSAP motion for the navbar. Elements opt in with data-nav attributes:
- *   border   – the gradient that travels around the bar (only while floating)
+ *   border   – the comet that travels around the bar's outline (only while floating)
  *   logo     – brand link (compass spins on hover)
  *   link     – nav links (icon tilts up on hover)
  *   cta      – Submit Listing (magnetic pull, press squish)
@@ -40,11 +52,23 @@ export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, p
     () => {
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK, () => {
-        borderTween.current = gsap.fromTo(
-          '[data-nav="border"]',
-          { '--nav-angle': '0deg' },
-          { '--nav-angle': '360deg', duration: 7, ease: 'none', repeat: -1, paused: true }
-        );
+        // Move each comet layer along the outline: offsets run from base to base-100
+        // (pathLength=100), so the comet keeps the same speed on every edge.
+        const layers = gsap.utils.toArray<SVGRectElement>('[data-nav="border"] .nav-comet');
+        const progress = { p: 0 };
+        borderTween.current = gsap.to(progress, {
+          p: 100,
+          duration: COMET_LAP_SECONDS,
+          ease: 'none',
+          repeat: -1,
+          paused: true,
+          onUpdate: () => {
+            for (const rect of layers) {
+              const base = Number(rect.dataset.cometBase || 0);
+              rect.style.strokeDashoffset = String(base - progress.p);
+            }
+          },
+        });
         if (window.scrollY > 24) borderTween.current.play();
         gsap.from('[data-nav="bar"] > :not([data-nav="border"])', {
           y: -8,
@@ -68,8 +92,20 @@ export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, p
     () => {
       const tween = borderTween.current;
       if (!tween) return;
-      if (isScrolled) tween.play();
-      else tween.pause();
+      if (!isScrolled) {
+        tween.pause();
+        return;
+      }
+      tween.play();
+      // Measure once the bar has finished shrinking into the pill
+      const bar = root.current?.querySelector('[data-nav="bar"]') ?? null;
+      const timer = window.setTimeout(() => syncCometSpeed(tween, bar), 350);
+      const onResize = () => syncCometSpeed(tween, bar);
+      window.addEventListener('resize', onResize);
+      return () => {
+        window.clearTimeout(timer);
+        window.removeEventListener('resize', onResize);
+      };
     },
     { dependencies: [isScrolled] }
   );

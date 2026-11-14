@@ -85,8 +85,19 @@ export default function Navbar() {
         className="nav-inner nav-float"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        {/* Coral-to-amber gradient that travels around the bar's edge */}
-        <span aria-hidden data-nav="border" className="nav-border" />
+        {/* A coral-to-amber comet that travels around the floating bar's edge */}
+        <svg aria-hidden data-nav="border" className="nav-border" focusable="false">
+          <defs>
+            <linearGradient id="nav-comet" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#ff5a36" />
+              <stop offset="100%" stopColor="#f59e0b" />
+            </linearGradient>
+          </defs>
+          {/* pathLength=100 lets the dash sizes be percentages of the outline */}
+          <rect className="nav-comet nav-comet--glow" data-comet-base="0" x="0" y="0" width="100%" height="100%" rx="22" pathLength={100} />
+          <rect className="nav-comet nav-comet--tail" data-comet-base="9" x="0" y="0" width="100%" height="100%" rx="22" pathLength={100} />
+          <rect className="nav-comet nav-comet--head" data-comet-base="0" x="0" y="0" width="100%" height="100%" rx="22" pathLength={100} />
+        </svg>
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link href="/" data-nav="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
