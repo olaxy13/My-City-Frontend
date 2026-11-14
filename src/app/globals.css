@@ -361,6 +361,21 @@ button {
   }
 }
 
+/* Listing card for an event that has already happened */
+.listing-card--ended {
+  opacity: 0.68;
+  transition: opacity 0.2s ease;
+}
+
+.listing-card--ended:hover,
+.listing-card--ended:focus-visible {
+  opacity: 0.9;
+}
+
+.listing-card--ended .listing-card__photo {
+  filter: grayscale(1);
+}
+
 /* Glassmorphism Containers */
 .glass-nav {
   background: var(--bg-glass);

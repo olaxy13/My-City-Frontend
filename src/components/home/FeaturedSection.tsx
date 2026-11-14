@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Category, ListingDetail } from '@/types/api';
 import { api } from '@/lib/api-client';
 import { CATEGORY_CONFIG } from '@/lib/utils';
-import ListingCard from '../listings/ListingCard';
+import ListingCard, { hasEventEnded } from '../listings/ListingCard';
 import CategoryExplorer from './CategoryExplorer';
 import { EmptyStateFrame, ListingGridSkeleton } from '@/components/ui/Skeletons';
 import { ArrowRight } from 'lucide-react';
@@ -55,7 +55,10 @@ export default function FeaturedSection({ listings = [], categories, city, isLoa
     }
   };
 
-  const shown = (selected ? filtered : listings).slice(0, GRID_SIZE);
+  // Ended events stay visible (greyed out) but go after everything still on
+  const shown = [...(selected ? filtered : listings)]
+    .sort((a, b) => Number(hasEventEnded(a)) - Number(hasEventEnded(b)))
+    .slice(0, GRID_SIZE);
   const selectedLabel = selected ? CATEGORY_CONFIG[selected as keyof typeof CATEGORY_CONFIG]?.label || selected : '';
   const exploreHref = selected ? `/explore?category=${selected}` : '/explore';
 

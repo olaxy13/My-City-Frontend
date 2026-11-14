@@ -6,7 +6,7 @@ import { api } from '@/lib/api-client';
 import { Category, CountdownSliderItem, ListingDetail } from '@/types/api';
 import HomeHero from '@/components/home/HomeHero';
 import OrganizerBanner from '@/components/home/OrganizerBanner';
-import FeaturedSection, { GRID_SIZE } from '@/components/home/FeaturedSection';
+import FeaturedSection from '@/components/home/FeaturedSection';
 import NeighborhoodSection from '@/components/home/NeighborhoodSection';
 
 const CITY_LISTINGS_LIMIT = 100;
@@ -61,7 +61,7 @@ export default function HomePage() {
       {/* 3. Trending grid, filtered by category chips (keyed so the filter resets per city) */}
       <FeaturedSection
         key={currentCity}
-        listings={cityListings.slice(0, GRID_SIZE)}
+        listings={cityListings}
         categories={categories}
         city={currentCity}
         isLoading={isLoading}
