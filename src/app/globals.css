@@ -7,6 +7,11 @@
 
   /* Color Palette - Vibrant Dark Mode */
   --bg-main: #0a0d14;
+  /* ambient page background (glows + faint dots), see body::before */
+  --page-glow-a: rgba(255, 90, 54, 0.11);
+  --page-glow-b: rgba(245, 158, 11, 0.07);
+  --page-glow-c: rgba(255, 90, 54, 0.06);
+  --page-dots: rgba(148, 163, 184, 0.07);
   --bg-secondary: #101522;
   --bg-card: rgba(18, 24, 38, 0.85);
   --bg-card-hover: rgba(26, 34, 54, 0.95);
@@ -63,6 +68,10 @@
 
   /* Color Palette - Vibrant Light Mode */
   --bg-main: #f8fafc;
+  --page-glow-a: rgba(255, 90, 54, 0.1);
+  --page-glow-b: rgba(245, 158, 11, 0.1);
+  --page-glow-c: rgba(236, 72, 153, 0.05);
+  --page-dots: rgba(15, 23, 42, 0.055);
   --bg-secondary: #f1f5f9;
   --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: #ffffff;
@@ -115,6 +124,30 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Ambient page background: soft brand glows at the edges and a faint dot
+ * texture on a fixed layer behind everything, so sections don't sit on a flat
+ * colour. The body is transparent so this layer shows; html keeps the base
+ * colour underneath.
+ */
+body {
+  background-color: transparent;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(55rem 38rem at -8% -6%, var(--page-glow-a), transparent 62%),
+    radial-gradient(48rem 36rem at 108% 32%, var(--page-glow-b), transparent 62%),
+    radial-gradient(56rem 36rem at 22% 112%, var(--page-glow-c), transparent 62%),
+    radial-gradient(var(--page-dots) 1px, transparent 1.4px);
+  background-size: auto, auto, auto, 24px 24px;
 }
 
 h1, h2, h3, h4, h5, h6 {
