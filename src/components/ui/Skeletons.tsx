@@ -404,17 +404,58 @@ export function SessionLoader({ message = 'Loading...' }: { message?: string }) 
   );
 }
 
+/** Mirrors the home page: search-first hero, neighborhood bento, Trending grid. */
 export function HomePageSkeleton() {
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }} role="status" aria-busy="true">
       <span className="sr-only">Loading homepage</span>
-      <HeroSliderSkeleton />
-      <div style={{ margin: '40px 0' }}>
-        <Bone width={180} height={12} style={{ marginBottom: 10 }} />
-        <Bone width={280} height={24} style={{ marginBottom: 20 }} />
-        <CategoryGridSkeleton />
+
+      {/* Hero: heading, search and date chips beside the event card */}
+      <div
+        style={{
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--border-color)',
+          background: 'var(--bg-secondary)',
+          padding: 'clamp(20px, 4vw, 44px)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
+          gap: 'clamp(24px, 4vw, 48px)',
+          alignItems: 'center',
+        }}
+      >
+        <div>
+          <Bone width="80%" height={44} style={{ marginBottom: 16 }} />
+          <Bone width="90%" height={14} style={{ marginBottom: 8 }} />
+          <Bone width="60%" height={14} style={{ marginBottom: 24 }} />
+          <Bone height={50} radius="var(--radius-full)" style={{ marginBottom: 16, maxWidth: 520 }} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Bone width={80} height={32} radius="var(--radius-full)" />
+            <Bone width={120} height={32} radius="var(--radius-full)" />
+            <Bone width={100} height={32} radius="var(--radius-full)" />
+          </div>
+        </div>
+        <Bone height={400} radius="var(--radius-lg)" />
       </div>
-      <ListingGridSkeleton count={6} />
+
+      {/* Explore by neighborhood */}
+      <div style={{ marginTop: 48 }}>
+        <Bone width={260} height={26} style={{ marginBottom: 8 }} />
+        <Bone width={200} height={12} style={{ marginBottom: 16 }} />
+        <div className="area-grid">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Bone key={i} height="100%" radius="var(--radius-lg)" style={{ minHeight: 140 }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Trending: heading, category chips, grid */}
+      <div style={{ margin: '48px 0' }}>
+        <Bone width={240} height={26} style={{ marginBottom: 16 }} />
+        <div style={{ marginBottom: 24 }}>
+          <CategoryGridSkeleton />
+        </div>
+        <ListingGridSkeleton count={6} />
+      </div>
     </div>
   );
 }

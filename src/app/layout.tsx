@@ -7,6 +7,7 @@ import { CityProvider } from '@/context/CityContext';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { InlineScript } from '@/components/ui/InlineScript';
 
 export const metadata: Metadata = {
   title: 'City Discovery Abeokuta | Discover Events, Food, Nightlife & Facilities',
@@ -39,10 +40,8 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.webp" type="image/webp" />
         <link rel="apple-touch-icon" href="/favicon.webp" />
         {/* Apply saved theme before first paint to prevent dark→light (or light→dark) flash */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('city_discovery_theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else{document.documentElement.setAttribute('data-theme','dark');}}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`,
-          }}
+        <InlineScript
+          html={`(function(){try{var t=localStorage.getItem('city_discovery_theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}else{document.documentElement.setAttribute('data-theme','dark');}}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`}
         />
         <Script
           id="global-error-suppression"

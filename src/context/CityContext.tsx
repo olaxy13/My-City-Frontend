@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { City } from '@/types/api';
 import { api } from '@/lib/api-client';
 import { getNeighborhoodsForCity as getNeighborhoodsHelper } from '@/lib/utils';
@@ -28,20 +28,42 @@ const DEFAULT_CITIES: City[] = [
 ];
 
 const CITY_STORAGE_KEY = 'city_discovery_selected_city';
+const DEFAULT_CITY = 'Abeokuta';
+const CITY_CHANGE_EVENT = 'city-discovery:city-change';
+
+/*
+ * The saved city lives in localStorage, which the server can't read. Reading it
+ * through useSyncExternalStore lets the server and the first browser render both
+ * use the default city, then switches to the saved one right after hydration,
+ * so React no longer reports a mismatch.
+ */
+/** Fallback when localStorage is blocked (private mode, disabled storage). */
+let memoryCity: string | null = null;
 
 function readSavedCity(): string {
-  if (typeof window === 'undefined') return 'Abeokuta';
   try {
-    return localStorage.getItem(CITY_STORAGE_KEY) || 'Abeokuta';
+    return localStorage.getItem(CITY_STORAGE_KEY) || memoryCity || DEFAULT_CITY;
   } catch {
-    return 'Abeokuta';
+    return memoryCity || DEFAULT_CITY;
   }
+}
+
+function subscribeToCity(onChange: () => void) {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === CITY_STORAGE_KEY) onChange();
+  };
+  window.addEventListener('storage', onStorage); // other tabs
+  window.addEventListener(CITY_CHANGE_EVENT, onChange); // this tab
+  return () => {
+    window.removeEventListener('storage', onStorage);
+    window.removeEventListener(CITY_CHANGE_EVENT, onChange);
+  };
 }
 
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
 export function CityProvider({ children }: { children: React.ReactNode }) {
-  const [currentCity, setCurrentCityState] = useState<string>(readSavedCity);
+  const currentCity = useSyncExternalStore(subscribeToCity, readSavedCity, () => DEFAULT_CITY);
   const [cities, setCities] = useState<City[]>(DEFAULT_CITIES);
   const [isLoadingCities, setIsLoadingCities] = useState<boolean>(true);
 
@@ -63,12 +85,13 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setCurrentCity = (city: string) => {
-    setCurrentCityState(city);
+    memoryCity = city;
     try {
       localStorage.setItem(CITY_STORAGE_KEY, city);
     } catch {
       // ignore storage access errors
     }
+    window.dispatchEvent(new Event(CITY_CHANGE_EVENT));
   };
 
   const activeCityObj = cities.find((c) => c.name.toLowerCase() === currentCity.toLowerCase());
