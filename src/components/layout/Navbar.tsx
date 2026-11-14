@@ -63,21 +63,25 @@ export default function Navbar() {
   }
 
   return (
-    <header className="glass-nav" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
-      {/* Brand accent along the bottom edge */}
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: -1,
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.7) 30%, rgba(245, 158, 11, 0.6) 70%, transparent)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div className="container nav-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
+    // Transparent sticky strip; the bar inside floats as a pill, inset from the edges
+    <header className="nav-shell" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+      <div
+        className="nav-inner nav-float"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '68px' }}
+      >
+        {/* Brand accent along the pill's bottom edge */}
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '28px',
+            right: '28px',
+            bottom: -1,
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.75) 30%, rgba(245, 158, 11, 0.65) 70%, transparent)',
+            pointerEvents: 'none',
+          }}
+        />
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -425,10 +429,11 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <div
-          className="glass-card-static"
+          className="glass-card-static nav-drawer"
           style={{
             padding: '16px',
-            margin: '0 12px 12px 12px',
+            margin: '8px auto 0',
+            maxWidth: '1200px',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',

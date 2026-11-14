@@ -106,7 +106,9 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden turns body into a scroll container, which breaks
+     position: sticky on the navbar. clip stops sideways overflow the same way. */
+  overflow-x: clip;
   background-color: var(--bg-main);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -402,6 +404,52 @@ button {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
+}
+
+/* Floating navbar: a transparent sticky strip holding a rounded glass pill */
+.nav-shell {
+  padding: 12px 20px 0;
+  pointer-events: none; /* the gap around the pill doesn't block the page */
+}
+
+.nav-shell > * {
+  pointer-events: auto;
+}
+
+.nav-float {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 12px 0 16px;
+  border-radius: var(--radius-xl);
+  /* near-opaque so it stays readable even where the blur isn't supported */
+  background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+[data-theme='light'] .nav-float {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+}
+
+.nav-drawer {
+  position: relative;
+  /* solid: menu text must never compete with the page behind it */
+  background: var(--bg-secondary) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 680px) {
+  .nav-shell {
+    padding: 10px 12px 0;
+  }
+
+  .nav-float {
+    padding: 0 8px 0 10px;
+    border-radius: var(--radius-lg);
+  }
 }
 
 .glass-card {
