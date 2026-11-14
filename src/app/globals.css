@@ -439,15 +439,33 @@ button {
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.nav-accent {
+.nav-border {
+  --nav-angle: 0deg;
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 90, 54, 0.75) 30%, rgba(245, 158, 11, 0.65) 70%, transparent);
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  /* a bright coral-to-amber arc on a faint ring; GSAP rotates --nav-angle */
+  background: conic-gradient(
+    from var(--nav-angle),
+    rgba(255, 90, 54, 0) 0deg,
+    rgba(255, 90, 54, 0.95) 50deg,
+    rgba(245, 158, 11, 0.9) 95deg,
+    rgba(245, 158, 11, 0) 150deg,
+    rgba(255, 90, 54, 0) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   pointer-events: none;
-  transition: left 0.3s ease, right 0.3s ease;
+}
+
+.nav-chevron {
+  transition: transform 0.3s ease;
+}
+
+[aria-expanded='true'] > .nav-chevron {
+  transform: rotate(180deg);
 }
 
 .nav-shell.is-scrolled {
@@ -471,11 +489,6 @@ button {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
 }
 
-.is-scrolled .nav-accent {
-  left: 28px;
-  right: 28px;
-}
-
 @media (max-width: 680px) {
   .nav-float {
     height: 62px;
@@ -496,7 +509,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .nav-shell,
   .nav-float,
-  .nav-accent {
+  .nav-chevron {
     transition: none;
   }
 }

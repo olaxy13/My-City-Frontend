@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
 import { useCity } from '@/context/CityContext';
 import { useAuth } from '@/context/AuthContext';
+import { useNavbarMotion } from './useNavbarMotion';
 import {
   MapPin,
   Search,
@@ -34,6 +35,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navRef = useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname });
 
   // Full-width bar at the top of the page; it turns into a floating pill once you scroll
   useEffect(() => {
@@ -74,18 +76,20 @@ export default function Navbar() {
   return (
     // Sticky strip: a full-width bar at the top, a floating pill once scrolled
     <header
+      ref={navRef}
       className={isScrolled ? 'nav-shell is-scrolled' : 'nav-shell'}
       style={{ position: 'sticky', top: 0, zIndex: 50 }}
     >
       <div
+        data-nav="bar"
         className="nav-inner nav-float"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
-        {/* Brand accent along the bar's bottom edge */}
-        <span aria-hidden className="nav-accent" />
+        {/* Coral-to-amber gradient that travels around the bar's edge */}
+        <span aria-hidden data-nav="border" className="nav-border" />
         {/* Brand & City Switcher Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Link href="/" data-nav="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
                 width: '36px',
@@ -139,11 +143,12 @@ export default function Navbar() {
               />
               <MapPin size={14} color="var(--primary)" aria-hidden />
               <span className="city-label" style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{currentCity}</span>
-              <ChevronDown size={14} color="var(--text-muted)" aria-hidden />
+              <ChevronDown size={14} color="var(--text-muted)" aria-hidden className="nav-chevron" />
             </button>
 
             {isCityDropdownOpen && (
               <div
+                data-nav="city-menu"
                 className="glass-card-static"
                 style={{
                   position: 'absolute',
@@ -166,6 +171,7 @@ export default function Navbar() {
                 {cities.map((city) => (
                   <button
                     key={city.id}
+                    data-nav="city-item"
                     onClick={() => {
                       if (city.isActive) {
                         setCurrentCity(city.name);
@@ -247,6 +253,7 @@ export default function Navbar() {
           <button
             type="submit"
             aria-label="Search"
+            data-nav="search"
             style={{
               width: '30px',
               height: '30px',
@@ -274,6 +281,7 @@ export default function Navbar() {
               href="/explore"
               aria-current={pathname?.startsWith('/explore') ? 'page' : undefined}
               className="nav-link-item"
+              data-nav="link"
             >
               <Compass size={16} aria-hidden />
               <span>Explore</span>
@@ -281,6 +289,7 @@ export default function Navbar() {
             <Link
               href="/organizer/check-in"
               className="nav-link-item"
+              data-nav="link"
               title="Event check-in QR scanner"
             >
               <QrCode size={16} color="var(--accent-emerald)" aria-hidden />
@@ -294,6 +303,7 @@ export default function Navbar() {
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
+            data-nav="theme"
             style={{
               width: '38px',
               height: '38px',
@@ -328,6 +338,7 @@ export default function Navbar() {
           {/* Primary CTA: Submit Listing */}
           <Link
             href="/submit"
+            data-nav="cta"
             className="btn btn-primary submit-btn"
             style={{ padding: '8px 16px', fontSize: '0.88rem', flexShrink: 0 }}
           >
@@ -346,6 +357,7 @@ export default function Navbar() {
               color: 'var(--text-primary)',
             }}
             type="button"
+            data-nav="menu-toggle"
             className="mobile-toggle"
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMobileMenuOpen}
@@ -427,6 +439,7 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <div
+          data-nav="drawer"
           className="glass-card-static nav-drawer"
           style={{
             padding: '16px',
@@ -438,7 +451,7 @@ export default function Navbar() {
             borderRadius: '16px',
           }}
         >
-          <form role="search" onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
+          <form role="search" data-nav="drawer-item" onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px' }}>
             <input
               type="search"
               aria-label="Search events, food and places"
@@ -455,6 +468,7 @@ export default function Navbar() {
 
           <Link
             href="/"
+            data-nav="drawer-item"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)' }}
           >
@@ -464,6 +478,7 @@ export default function Navbar() {
 
           <Link
             href="/explore"
+            data-nav="drawer-item"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)' }}
           >
@@ -473,6 +488,7 @@ export default function Navbar() {
 
           <Link
             href="/organizer/check-in"
+            data-nav="drawer-item"
             onClick={() => setIsMobileMenuOpen(false)}
             style={{ padding: '10px 4px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
           >
@@ -482,6 +498,7 @@ export default function Navbar() {
 
           <Link
             href="/submit"
+            data-nav="drawer-item"
             onClick={() => setIsMobileMenuOpen(false)}
             className="btn btn-primary"
             style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
