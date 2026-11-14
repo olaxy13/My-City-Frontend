@@ -8,31 +8,16 @@ gsap.registerPlugin(useGSAP);
 
 const MOTION_OK = '(prefers-reduced-motion: no-preference)';
 
-/** One lap on a bar with COMET_REFERENCE_PERIMETER px of outline; other sizes keep the same speed. */
-const COMET_LAP_SECONDS = 10;
-const COMET_REFERENCE_PERIMETER = 2500;
-
-/** Speeds the lap up on short bars (phones) so the comet moves at a steady px/second. */
-function syncCometSpeed(tween: gsap.core.Tween, bar: Element | null) {
-  if (!bar) return;
-  const { width, height } = bar.getBoundingClientRect();
-  const perimeter = 2 * (width + height);
-  if (perimeter > 0) tween.timeScale(COMET_REFERENCE_PERIMETER / perimeter);
-}
-
 interface NavbarMotionState {
   theme: string;
   isMobileMenuOpen: boolean;
   isCityDropdownOpen: boolean;
   /** Re-binds hover interactions when the page changes (e.g. the search box appears). */
   pathname: string | null;
-  /** The travelling border only shows (and runs) while the bar floats. */
-  isScrolled: boolean;
 }
 
 /**
  * GSAP motion for the navbar. Elements opt in with data-nav attributes:
- *   border   – the comet that travels around the bar's outline (only while floating)
  *   logo     – brand link (compass spins on hover)
  *   link     – nav links (icon tilts up on hover)
  *   cta      – Submit Listing (magnetic pull, press squish)
@@ -42,35 +27,16 @@ interface NavbarMotionState {
  *   drawer / drawer-item  – phone menu (drops in, items follow)
  * Everything is skipped for visitors who prefer reduced motion.
  */
-export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname, isScrolled }: NavbarMotionState) {
+export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, pathname }: NavbarMotionState) {
   const root = useRef<HTMLElement>(null);
   const isFirstTheme = useRef(true);
-  const borderTween = useRef<gsap.core.Tween | null>(null);
 
-  // Gradient travelling around the bar, and the bar settling in on first load
+  // The bar's contents settle in on first load
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK, () => {
-        // Move each comet layer along the outline: offsets run from base to base-100
-        // (pathLength=100), so the comet keeps the same speed on every edge.
-        const layers = gsap.utils.toArray<SVGRectElement>('[data-nav="border"] .nav-comet');
-        const progress = { p: 0 };
-        borderTween.current = gsap.to(progress, {
-          p: 100,
-          duration: COMET_LAP_SECONDS,
-          ease: 'none',
-          repeat: -1,
-          paused: true,
-          onUpdate: () => {
-            for (const rect of layers) {
-              const base = Number(rect.dataset.cometBase || 0);
-              rect.style.strokeDashoffset = String(base - progress.p);
-            }
-          },
-        });
-        if (window.scrollY > 24) borderTween.current.play();
-        gsap.from('[data-nav="bar"] > :not([data-nav="border"])', {
+        gsap.from('[data-nav="bar"] > *', {
           y: -8,
           opacity: 0,
           duration: 0.55,
@@ -78,36 +44,10 @@ export function useNavbarMotion({ theme, isMobileMenuOpen, isCityDropdownOpen, p
           stagger: 0.06,
           clearProps: 'transform,opacity',
         });
-        return () => {
-          borderTween.current = null;
-        };
       });
       return () => mm.revert();
     },
     { scope: root }
-  );
-
-  // The travelling border only runs while the bar floats (it's hidden otherwise)
-  useGSAP(
-    () => {
-      const tween = borderTween.current;
-      if (!tween) return;
-      if (!isScrolled) {
-        tween.pause();
-        return;
-      }
-      tween.play();
-      // Measure once the bar has finished shrinking into the pill
-      const bar = root.current?.querySelector('[data-nav="bar"]') ?? null;
-      const timer = window.setTimeout(() => syncCometSpeed(tween, bar), 350);
-      const onResize = () => syncCometSpeed(tween, bar);
-      window.addEventListener('resize', onResize);
-      return () => {
-        window.clearTimeout(timer);
-        window.removeEventListener('resize', onResize);
-      };
-    },
-    { dependencies: [isScrolled] }
   );
 
   // Hover and press interactions

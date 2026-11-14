@@ -439,54 +439,6 @@ button {
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.nav-border {
-  position: absolute;
-  inset: -1px; /* sit on the bar's 1px border */
-  width: calc(100% + 2px);
-  height: calc(100% + 2px);
-  overflow: visible;
-  pointer-events: none;
-  /* only shown while the bar floats (see .is-scrolled below) */
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.nav-comet {
-  fill: none;
-  stroke-linecap: round;
-  rx: var(--radius-xl); /* follows the pill's corners (attribute rx is the fallback) */
-}
-
-.nav-comet--head {
-  stroke: url(#nav-comet);
-  stroke-width: 1.75;
-  stroke-dasharray: 10 90;
-}
-
-.nav-comet--tail {
-  stroke: #ff5a36;
-  stroke-opacity: 0.35;
-  stroke-width: 1.25;
-  stroke-dasharray: 20 80;
-}
-
-.nav-comet--glow {
-  stroke: url(#nav-comet);
-  stroke-opacity: 0.28;
-  stroke-width: 5;
-  stroke-dasharray: 10 90;
-}
-
-@media (max-width: 680px) {
-  .nav-comet {
-    rx: var(--radius-lg);
-  }
-}
-
-.is-scrolled .nav-border {
-  opacity: 1;
-}
-
 .nav-chevron {
   transition: transform 0.3s ease;
 }
