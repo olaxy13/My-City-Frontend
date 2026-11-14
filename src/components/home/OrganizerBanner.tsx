@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, MessageCircle, ShieldCheck, Zap, type LucideIcon } from 'lucide-react';
 
 const BENEFITS: { Icon: LucideIcon; title: string; text: string }[] = [
-  { Icon: Zap, title: 'Free to list', text: 'No commission or ticket markups' },
+  { Icon: Zap, title: 'Free to list', text: 'And paid tickets carry one of the lowest commissions around' },
   { Icon: ShieldCheck, title: 'Verified badge', text: 'After a CAC or licence check, usually within 24 hours' },
   { Icon: MessageCircle, title: 'Direct enquiries', text: 'Customers reach you on WhatsApp' },
 ];
