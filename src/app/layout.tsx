@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { CITY_STORAGE_KEY, cityFromCookie } from '@/lib/city';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
@@ -28,11 +30,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // The visitor's city, so the server renders the same city the browser will show
+  const initialCity = cityFromCookie((await cookies()).get(CITY_STORAGE_KEY)?.value);
+
   return (
     <html lang="en" suppressHydrationWarning data-theme="dark" data-scroll-behavior="smooth">
       <head>
@@ -117,7 +122,7 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <CityProvider>
+          <CityProvider initialCity={initialCity}>
             <AuthProvider>
               <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Navbar />
